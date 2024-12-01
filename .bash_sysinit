@@ -1,0 +1,6 @@
+# ~/.bash_sysinit
+if [ ! -d "/run/user/$(id -u)" ]; then
+    mkdir -p /run/user/$(id -u)
+    XDG_RUNTIME_DIR=/run/user/$(id -u)
+    eval $(dbus-launch --sh-syntax)
+fi
