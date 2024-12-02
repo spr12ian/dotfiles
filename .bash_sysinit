@@ -4,3 +4,5 @@ if [ ! -d "/run/user/$(id -u)" ]; then
     XDG_RUNTIME_DIR=/run/user/$(id -u)
     eval $(dbus-launch --sh-syntax)
 fi
+
+source ~/.env
