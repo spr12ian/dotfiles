@@ -8,4 +8,4 @@ trap 'echo "Executing: $BASH_COMMAND"' DEBUG
 focus-here.sh
 
 trap - DEBUG
-echo "Finished running code at the end of ~/.profile"
+echo "Finished running .post_profile"
