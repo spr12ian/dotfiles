@@ -1,8 +1,11 @@
-# ~/.bash_sysinit
-if [ ! -d "/run/user/$(id -u)" ]; then
-    mkdir -p /run/user/$(id -u)
-    XDG_RUNTIME_DIR=/run/user/$(id -u)
-    eval $(dbus-launch --sh-syntax)
+#!/bin/bash
+
+user_id="$(id -u)"
+
+if [ ! -d /run/user/"${user_id}" ]; then
+    mkdir -p /run/user/"${user_id}"
+    XDG_RUNTIME_DIR=/run/user/"${user_id}"; export XDG_RUNTIME_DIR
+    eval "$(dbus-launch --sh-syntax)"
 fi
 
-source ~/.env
+source "${HOME}"/.env
