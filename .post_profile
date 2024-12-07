@@ -1,0 +1,11 @@
+#!/bin/bash
+
+echo "Running .post_profile"
+trap 'echo "Executing: $BASH_COMMAND"' DEBUG
+
+. "$HOME/.env"
+
+focus-here.sh
+
+trap - DEBUG
+echo "Finished running code at the end of ~/.profile"
