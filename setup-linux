@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Check if .profile already has .post_profile
-if ! grep -q ".post_profile" /etc/ssh/sshd_config; then
+if ! grep -q ".post_profile" "$HOME/.profile" then
     # We want this to output $HOME without expansion
     # shellcheck disable=SC2016
     echo '. "$HOME/.post_profile"' >>"$HOME/.profile"
