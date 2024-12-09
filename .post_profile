@@ -3,9 +3,10 @@
 echo "Running .post_profile"
 trap 'echo "Executing: $BASH_COMMAND"' DEBUG
 
-. "$HOME/.env"
+# shellcheck source=/dev/null
+. "$HOME"/.env
 
-focus-here.sh
+focus-here
 
 trap - DEBUG
 echo "Finished running .post_profile"
