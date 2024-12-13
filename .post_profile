@@ -1,12 +1,19 @@
 #!/bin/bash
 
-echo "Running .post_profile"
-trap 'echo "Executing: $BASH_COMMAND"' DEBUG
+DEBUG=false
+export DEBUG
 
-# shellcheck source=/dev/null
-. "$HOME"/.env
+# Check if DEBUG is set to true
+if [ "$DEBUG" = "true" ]; then
+    set -x # Enable debugging
+else
+    set +x # Disable debugging
+fi
+
+debug echo "Running .post_profile"
+
+. "$HOME/.env"
 
 focus-here
 
-trap - DEBUG
-echo "Finished running .post_profile"
+debug echo "Finished running .post_profile"
