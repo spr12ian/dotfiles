@@ -10,9 +10,13 @@ else
     set +x # Disable debugging
 fi
 
+setup-symbolic-links
+
 debug echo "Running .post_profile"
 
 . "$HOME/.env"
+
+
 
 focus-here
 
