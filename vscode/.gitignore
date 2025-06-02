@@ -1,0 +1,22 @@
+# VS Code session storage and cruft
+globalStorage/
+workspaceStorage/
+history/
+sync/
+logs/
+Cache/
+CachedData/
+Code Cache/
+Service Worker/
+User/globalStorage/
+User/workspaceStorage/
+User/history/
+User/sync/
+User/logs/
+User/Code\ Cache/
+User/CachedData/
+User/Service\ Worker/
+
+# System-specific settings
+storage.json
+storage.json.backup*

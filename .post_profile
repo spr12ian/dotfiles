@@ -16,8 +16,6 @@ debug echo "Running .post_profile"
 
 . "$HOME/.env"
 
-
-
 focus-here
 
 debug echo "Finished running .post_profile"
