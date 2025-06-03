@@ -18,12 +18,15 @@ else
     echo "No delete-me-setup-linux.env found, proceeding with setup."
 fi
 
+echo "🔧 Checking for required environment variables..."
 required_vars=(GITHUB_TOKEN GITHUB_SETUP_REPO GITHUB_USER_NAME)
 
 for var in "${required_vars[@]}"; do
     if [ -z "${!var+x}" ]; then
         echo "$var is not set"
         return 1
+    else
+        echo "$var is set"
     fi
 done
 
@@ -37,11 +40,11 @@ fi
 echo "🔐 Logging in to GitHub CLI..."
 gh auth login
 
-# Check if .profile already has .post_profile
-if ! grep -q ".post_profile" "$HOME"/.profile; then
+# Check if .bashrc already has .post_bashrc
+if ! grep -q ".post_bashrc" "$HOME"/.bashrc; then
     # We want this to output $HOME without expansion
     # shellcheck disable=SC2016
-    echo 'source "$HOME"/.post_profile' >>"$HOME/.profile"
+    echo 'source "$HOME"/.post_bashrc' >>"$HOME/.bashrc"
 fi
 
 echo "This script will now delete itself."
@@ -53,9 +56,10 @@ SCRIPT_PATH="$(realpath "$0")"
 rm -- "$SCRIPT_PATH"
 
 echo "Script deleted successfully."
-# Source the .profile to apply changes immediately
-source "$HOME/.profile" || {
-    echo "Failed to source .profile. Please run 'source $HOME/.profile' manually."
+# Source the .bash_profile to apply changes immediately
+# shellcheck source=/dev/null
+source "$HOME/.bash_profile" || {
+    echo "Failed to source .bash_profile. Please run 'source $HOME/.bash_profile' manually."
 }
 # Print a message indicating the setup is complete
-echo "Setup complete. Please restart your terminal or run 'source $HOME/.profile' to apply changes."
+echo "Setup complete. Please restart your terminal or run 'source $HOME/.bash_profile' to apply changes."

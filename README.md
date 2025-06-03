@@ -1,8 +1,23 @@
 # dotfiles
-Files to speed up the setup of new environments
+Speed up the setup of new development environments
+
+Copy the delete-me-setup-linux.env contents from Bitwarden
 
 On initial login to a new environment
-1. Copy the setup file from GitHub
+
+1. Create .env file
+
 ```
-curl -fsSL https://raw.githubusercontent.com/spr12ian/dotfiles/refs/heads/main/setup-linux -o setup-linux && source setup-linux
+cat >delete-me-setup-linux.env
+```
+<kbd>Ctrl</kbd> + <kbd>V</kbd> then
+<kbd>Ctrl</kbd> + <kbd>D</kbd>
+
+2. Set environment variables from file
+
+`set -a; source delete-me-setup-linux.env; set +a`
+
+3. Copy the setup file from GitHub
+```
+curl -fsSL https://raw.githubusercontent.com/$GITHUB_USER_NAME/$GITHUB_SETUP_REPO/refs/heads/main/setup-linux.sh -o setup-linux.sh && source setup-linux.sh
 ```
