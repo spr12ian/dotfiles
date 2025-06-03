@@ -14,7 +14,7 @@ setup-symbolic-links
 
 debug echo "Running .post_profile"
 
-. "$HOME/.env"
+source "$HOME/.env"
 
 focus-here
 
