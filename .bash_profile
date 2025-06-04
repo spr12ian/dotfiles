@@ -1,45 +1,47 @@
 #!/bin/bash
 
-# if running bash
-if [ -n "$BASH_VERSION" ]; then
-    # include .bashrc if it exists
-    if [ -f "$HOME/.bashrc" ]; then
-        source "$HOME/.bashrc"
-    fi
-else
-    echo "This script is intended to be run in a bash shell."
+[ -n "$BASH_VERSION" ] || {
+    echo "Must be sourced in Bash." >&2
+    return 1
+}
+
+if [ ! -f "$HOME/.bashrc" ]; then
+    echo ".bashrc not found in $HOME." >&2
     return 1
 fi
 
-# set PATH so it includes user's private bin if it exists
-if [ -d "$HOME/bin" ]; then
-    PATH="$HOME/bin:$PATH"
-fi
+# .bashrc sources .post_bashrc
+# .post_bashrc sources .env
+# .post_bashrc adds "$HOME/.local/bin" to the PATH
+# shellcheck source=/dev/null
+source "$HOME/.bashrc"
 
-# set PATH so it includes user's private bin if it exists
-if [ -d "$HOME/.local/bin" ]; then
-    PATH="$HOME/.local/bin:$PATH"
-fi
-source "$HOME"/.post_profile
+run_local() {
+    local cmd="$1"
+    shift
 
-DEBUG=false
-export DEBUG
+    local local_cmd="$HOME/.local/bin/$cmd"
 
-# Check if DEBUG is set to true
-if [ "$DEBUG" = "true" ]; then
-    set -x # Enable debugging
-else
-    set +x # Disable debugging
-fi
+    # Check: file exists and is executable in .local/bin
+    if [ ! -x "$local_cmd" ]; then
+        echo "Command '$cmd' not found or not executable in $HOME/.local/bin." >&2
+        return 1
+    fi
 
-setup-symbolic-links
+    # Check: it's the first found in PATH
+    local resolved
+    resolved="$(command -v "$cmd" 2>/dev/null)"
+    if [ "$resolved" != "$local_cmd" ]; then
+        echo "Command '$cmd' is not resolved to $HOME/.local/bin first in PATH (resolved to $resolved)." >&2
+        return 1
+    fi
 
-debug echo "Running .post_profile"
+    # Safe to run
+    "$local_cmd" "$@"
+}
 
-source "$HOME/.env"
+echo "Running .bash_profile"
 
-focus-here
+run_local focus-here
 
-debug echo "Finished running .post_profile"
-
-set +x
+echo "Finished running .bash_profile"

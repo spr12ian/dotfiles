@@ -1,0 +1,21 @@
+#!/bin/bash
+
+add_to_path_if_exists() {
+    local dir="$1"
+    if [ -d "$dir" ] && [[ ":$PATH:" != *":$dir:"* ]]; then
+        PATH="$dir:$PATH"
+    fi
+}
+
+source_if_exists() {
+    local file="$1"
+    if [ -f "$file" ]; then
+        # shellcheck source=/dev/null
+        source "$file"
+    fi
+}
+
+add_to_path_if_exists "$HOME/.local/bin"
+
+source_if_exists "$HOME/.env"
+

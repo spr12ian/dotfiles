@@ -7,17 +7,6 @@ set -euo pipefail
     exit 1
 }
 
-echo "🔧 Starting setup-linux..."
-if [ -f delete-me-setup-linux.env ]; then
-    echo "Sourcing delete-me-setup-linux.env"
-    set -a
-    # shellcheck source=/dev/null
-    source delete-me-setup-linux.env
-    set +a
-else
-    echo "No delete-me-setup-linux.env found, proceeding with setup."
-fi
-
 echo "🔧 Checking for required environment variables..."
 required_vars=(GITHUB_TOKEN GITHUB_SETUP_REPO GITHUB_USER_NAME)
 
