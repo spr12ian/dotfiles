@@ -38,9 +38,12 @@ if [ "$IS_WSL" = true ]; then
 else
     VSCODE_SETTINGS_DIR="$HOME/.config/Code/User"
 fi
+
+# ignore unused variable
 # shellcheck disable=SC2034
 VSCODE_SETTINGS_FILE="$VSCODE_SETTINGS_DIR/settings.json"
 
+# ignore unused variable
 # shellcheck disable=SC2034
 GITHUB_HOST_NAME=$(hostnamectl --static)
 
