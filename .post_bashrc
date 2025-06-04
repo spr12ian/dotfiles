@@ -1,9 +1,13 @@
 #!/bin/bash
 
-add_to_path_if_exists() {
-    local dir="$1"
+add_path_if_exists() {
+    local position="$1" dir="$2"
     if [ -d "$dir" ] && [[ ":$PATH:" != *":$dir:"* ]]; then
-        PATH="$dir:$PATH"
+        case "$position" in
+        before) PATH="$dir:$PATH" ;;
+        after) PATH="$PATH:$dir" ;;
+        *) echo "Invalid position: $position (use 'before' or 'after')" >&2 ;;
+        esac
     fi
 }
 
@@ -15,7 +19,28 @@ source_if_exists() {
     fi
 }
 
-add_to_path_if_exists "$HOME/.local/bin"
+add_path_if_exists before "$HOME/.local/bin"
+
+# Do I really need go?
+#add_path_if_exists after "/usr/local/go/bin"
+#add_path_if_exists after "$HOME/go/bin"
+
+set -a
+
+IS_WSL=false
+if grep -qi microsoft /proc/version; then
+    IS_WSL=true
+fi
+
+if [ "$IS_WSL" = true ]; then
+    WINDOWS_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r')
+    VSCODE_SETTINGS_DIR="/mnt/c/Users/$WINDOWS_USER/AppData/Roaming/Code/User"
+else
+    VSCODE_SETTINGS_DIR="$HOME/.config/Code/User"
+fi
+# shellcheck disable=SC2034
+VSCODE_SETTINGS_FILE="$VSCODE_SETTINGS_DIR/settings.json"
 
 source_if_exists "$HOME/.env"
 
+set +a
