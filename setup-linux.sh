@@ -13,6 +13,7 @@ add_path_if_exists() {
 }
 
 check_not_sourced() {
+    log_info "$0"
     (return 0 2>/dev/null) && {
         log_error "This script must not be sourced."
         exit 1
