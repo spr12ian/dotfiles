@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 set_debug_log() {
@@ -50,16 +50,41 @@ add_path_if_exists() {
     log_block_finish
 }
 
+check_github_ssh() {
+    log_info "🔍 Testing SSH connection to GitHub..."
+
+    # Capture output (stderr only) because GitHub writes the message there
+    output=$(ssh -o BatchMode=yes -T git@github.com 2>&1 || true)
+
+    if grep -q "successfully authenticated" <<<"$output"; then
+        # Extract GitHub username (format: "Hi username!")
+        if [[ "$output" =~ Hi[[:space:]]([[:alnum:]-]+)! ]]; then
+            github_user="${BASH_REMATCH[1]}"
+            log_info "✅ SSH authentication with GitHub succeeded."
+            log_info "   Authenticated as: $github_user"
+        else
+            log_warn "⚠️  SSH succeeded, but could not extract username."
+            log_warn "   Raw response: $output"
+        fi
+    else
+        log_error "❌ SSH authentication with GitHub failed." >&2
+        log_error "   - Make sure your SSH key is added to https://github.com/settings/keys" >&2
+        log_error "   - Run: ssh -vT git@github.com for debugging." >&2
+        exit 1
+    fi
+    
+    # shellcheck disable=SC2162
+    read -p "Press Enter to continue or Ctrl+C to abort..."
+}
+
 check_not_sourced() {
     log_block_start
 
     if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
-        echo "${BASH_SOURCE[0]}" is different from "${0}"
         log_error "This script must not be sourced."
         exit 1
     else
-        echo "${BASH_SOURCE[0]}" is not different from "${0}"
-        echo This file is executed
+        log_info "This file is executed"
     fi
 
     log_block_finish
@@ -237,11 +262,7 @@ setup_github() {
         ssh-keygen -lf ~/.ssh/id_ed25519.pub
     fi
 
-    if ! ssh -T git@github.com; then
-        log_warn "SSH connection to GitHub failed. Is the key added to your GitHub account?"
-        # shellcheck disable=SC2162
-        read -p "Press Enter to continue or Ctrl+C to abort..."
-    fi
+    check_github_ssh
 
     log_block_finish
 }
@@ -314,7 +335,7 @@ update_linux() {
     install_git
     install_gh
     install_jq
-    
+
     log_block_finish
 }
 
