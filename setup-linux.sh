@@ -1,7 +1,43 @@
 #!/bin/bash
 set -euo pipefail
 
+set_debug_log() {
+    # Location of the debug log
+    DEBUG_LOG="${DEBUG_LOG:-/tmp/$(basename "$0").log}"
+    echo "The debug log file can be found at $DEBUG_LOG"
+}
+
+# Uncomment the next line to send debug messages to the log file
+# set_debug_log
+
+# Log a message with optional timestamp and indentation
+_debug_log() {
+    local msg="$1"
+    local indent=""
+    for ((i = ${#FUNCNAME[@]} - 2; i > 0; i--)); do
+        indent+="  "
+    done
+    local timestamp
+    timestamp=$(date "+%Y-%m-%d %H:%M:%S")
+
+    if declare -p DEBUG_LOG &>/dev/null; then
+        echo "${timestamp} ${indent}${msg}" >>"$DEBUG_LOG"
+    else
+        echo "${timestamp} ${indent}${msg}"
+    fi
+}
+
+log_block_start() {
+    _debug_log "→ Entering ${FUNCNAME[1]}"
+}
+
+log_block_finish() {
+    _debug_log "← Exiting ${FUNCNAME[1]}"
+}
+
 add_path_if_exists() {
+    log_block_start
+
     local position="$1" dir="$2"
     if [ -d "$dir" ] && [[ ":$PATH:" != *":$dir:"* ]]; then
         case "$position" in
@@ -10,17 +46,28 @@ add_path_if_exists() {
         *) log_error "Invalid position: $position (use 'before' or 'after')" >&2 ;;
         esac
     fi
+
+    log_block_finish
 }
 
 check_not_sourced() {
-    log_info "$0"
-    (return 0 2>/dev/null) && {
+    log_block_start
+
+    if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
+        echo "${BASH_SOURCE[0]}" is different from "${0}"
         log_error "This script must not be sourced."
         exit 1
-    }
+    else
+        echo "${BASH_SOURCE[0]}" is not different from "${0}"
+        echo This file is executed
+    fi
+
+    log_block_finish
 }
 
 check_required_variables() {
+    log_block_start
+
     log_info "🔧 Checking for required environment variables..."
     required_vars=(GITHUB_PARENT GITHUB_SETUP_REPO GITHUB_TOKEN GITHUB_USER_EMAIL GITHUB_USER_NAME)
 
@@ -32,9 +79,13 @@ check_required_variables() {
             log_info "$var is set"
         fi
     done
+
+    log_block_finish
 }
 
 focus_here() {
+    log_block_start
+
     setup_github
 
     # List public repositories for a specific user
@@ -75,29 +126,50 @@ focus_here() {
     else
         log_warn "No GitHub repos found for ${GITHUB_USER_NAME}"
     fi
+
+    log_block_finish
 }
 
 install_curl() {
+    log_block_start
+
     install_package curl
+
+    log_block_finish
 }
 
 install_gh() {
+    log_block_start
+
     curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
     sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null
     sudo apt update
+
     install_package gh
+
+    log_block_finish
 }
 
 install_git() {
+    log_block_start
+
     install_package git
+
+    log_block_finish
 }
 
 install_jq() {
+    log_block_start
+
     install_package jq
+
+    log_block_finish
 }
 
 install_package() {
+    log_block_start
+
     local pkg="$1"
 
     if dpkg -s "$pkg" >/dev/null 2>&1; then
@@ -110,6 +182,8 @@ install_package() {
             log_warn "Failed to install $pkg"
         fi
     fi
+
+    log_block_finish
 }
 
 log_error() { echo "❌ $*" >&2; }
@@ -117,14 +191,18 @@ log_info() { echo "ℹ️  $*"; }
 log_warn() { echo "⚠️  $*" >&2; }
 
 require_bash() {
+    log_block_start
+
     if [ -z "${BASH_VERSION:-}" ]; then
         log_error "This script must be run with bash, not sh or another shell." >&2
         exit 1
     fi
+
+    log_block_finish
 }
 
 setup_git() {
-    log_info "$0" started
+    log_block_start
 
     git config --global core.autocrlf input
     git config --global core.fileMode false
@@ -132,11 +210,11 @@ setup_git() {
     git config --global init.defaultBranch main
     git config --global pull.rebase false
 
-    log_info "$0" finished
+    log_block_finish
 }
 
 setup_github() {
-    log_info "$0" started
+    log_block_start
 
     setup_git
 
@@ -165,10 +243,12 @@ setup_github() {
         read -p "Press Enter to continue or Ctrl+C to abort..."
     fi
 
-    log_info "$0" finished
+    log_block_finish
 }
 
 setup_symbolic_links() {
+    log_block_start
+
     source_dir="${GITHUB_PARENT}/bin"
     target_dir="$HOME/.local/bin"
     mkdir -p "${target_dir}"
@@ -220,9 +300,13 @@ setup_symbolic_links() {
     add_path_if_exists before "$HOME/.local/bin"
 
     log_info "Done."
+
+    log_block_finish
 }
 
 update_linux() {
+    log_block_start
+
     sudo apt update
     sudo apt upgrade -y
 
@@ -230,6 +314,8 @@ update_linux() {
     install_git
     install_gh
     install_jq
+    
+    log_block_finish
 }
 
 require_bash

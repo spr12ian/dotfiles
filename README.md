@@ -22,5 +22,5 @@ cat >.env
 
 3. Copy & run the setup file from GitHub
 ```
-curl -fsSL ""https://raw.githubusercontent.com/$GITHUB_USER_NAME/$GITHUB_SETUP_REPO/refs/heads/main/setup-linux.sh?nocache=$(date +%s)" -o setup-linux.sh && bash setup-linux.sh
+curl -fsSL "https://raw.githubusercontent.com/$GITHUB_USER_NAME/$GITHUB_SETUP_REPO/refs/heads/main/setup-linux.sh?nocache=$(date +%s)" -o setup-linux.sh && bash setup-linux.sh
 ```
