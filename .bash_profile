@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# shellcheck source=/dev/null
+source "$HOME/.local/bin/source-bash"
+
+stop_if_executed
+
 [ -n "$BASH_VERSION" ] || {
     echo "Must be sourced in Bash." >&2
     return 1

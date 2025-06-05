@@ -72,9 +72,6 @@ check_github_ssh() {
         log_error "   - Run: ssh -vT git@github.com for debugging." >&2
         exit 1
     fi
-    
-    # shellcheck disable=SC2162
-    read -p "Press Enter to continue or Ctrl+C to abort..."
 }
 
 check_not_sourced() {
@@ -296,26 +293,46 @@ setup_symbolic_links() {
     fi
 
     for file in "${files[@]}"; do
-        log_info "Processing: ${file}"
+        [[ -f "$file" ]] || {
+            log_warn "Source is not a regular file: $file"
+            continue
+        }
 
         # Check if file has a shebang line
-        grep -q '^#!' "$file" || log_warn "WARNING: $file is missing a shebang line"
-        [[ ! -f "${file}" ]] && log_warn "Source is not a regular file"
-        [[ ! -x "${file}" ]] && log_warn "Source is not executable"
+        grep -q '^#!' "$file" || {
+            echo "WARNING: $file is missing a shebang line"
+            continue
+        }
 
         command_file=$(basename "${file}" .sh)
+
+        if [[ "$command_file" == source-* ]]; then
+            mode=600
+        else
+            mode=700
+        fi
+
+        chmod "$mode" "$file"
+
         link_path="${target_dir}/${command_file}"
 
         ln -sf "${file}" "${link_path}"
-        log_info "Created symlink: ${link_path} -> ${file}"
-
-        [[ ! -x "${link_path}" ]] && log_warn "Link is not executable"
-        [[ ! -f "${link_path}" ]] && log_warn "Link is not a regular file"
-
-        echo
     done
 
-    ls -al "${target_dir}"
+    for file in "${source_dir}"/*; do
+        # Skip if it's a directory
+        [[ -d "$file" ]] && continue
+
+        # Skip if filename ends with .sh
+        if [[ "$file" == *.sh ]]; then
+            continue
+        fi
+
+        ls -l "$file"
+    done
+
+    ls -lL "${target_dir}"
+
     log_info "Symbolic links created in ${target_dir} for all .sh files in ${source_dir}"
 
     add_path_if_exists before "$HOME/.local/bin"

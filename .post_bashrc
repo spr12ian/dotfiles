@@ -1,4 +1,8 @@
 #!/bin/bash
+set -euo pipefail
+
+# shellcheck source=/dev/null
+source "$HOME/.local/bin/source-bash"
 
 add_path_if_exists() {
     local position="$1" dir="$2"
@@ -8,14 +12,6 @@ add_path_if_exists() {
         after) PATH="$PATH:$dir" ;;
         *) echo "Invalid position: $position (use 'before' or 'after')" >&2 ;;
         esac
-    fi
-}
-
-source_if_exists() {
-    local file="$1"
-    if [ -f "$file" ]; then
-        # shellcheck source=/dev/null
-        source "$file"
     fi
 }
 
