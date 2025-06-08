@@ -116,3 +116,33 @@ VSCODE_SETTINGS_FILE="$VSCODE_SETTINGS_DIR/settings.json"
 source_if_exists "$HOME/.env"
 
 set +a
+
+# ──────────────────────────────────────────────────────────────
+# 🧠 Bash History Cheat Sheet – Rerun & Edit Previous Commands
+# ──────────────────────────────────────────────────────────────
+# 🔁 Rerun Commands
+#   !!             → Rerun last command
+#   !n             → Run command number n from `history`
+#   !string        → Rerun last command starting with 'string'
+#   !^             → First argument of previous command
+#   !$             → Last argument of previous command
+
+# ✏️ Modify and Reuse
+#   ^old^new       → Replace first 'old' with 'new' in previous command
+#   !!:s/old/new/  → Replace first 'old' with 'new'
+#   !!:gs/old/new/ → Replace all 'old' with 'new'
+#   !n:p           → Print command n without running it
+#   fc             → Edit previous command in $EDITOR
+
+# 🔍 History Search
+#   Ctrl + r       → Reverse incremental search
+#   Ctrl + s       → Forward search (may need `stty -ixon`)
+#   Ctrl + g       → Cancel search
+#   Esc            → Drop into prompt with matched command
+
+# 🧪 Example
+#   $ echo hellp
+#   $ ^hellp^hello   → Corrects and reruns as: echo hello
+#   $ !ls            → Repeats last command starting with 'ls'
+
+# ──────────────────────────────────────────────────────────────
