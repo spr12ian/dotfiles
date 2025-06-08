@@ -82,8 +82,8 @@ _vcode_autocomplete() {
 
     # Only complete if not using --all
     if [[ "$COMP_CWORD" -ge 1 && "${COMP_WORDS[1]}" != --all ]]; then
-        projects=$(compgen -W "$(find "$project_dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n')" -- "$cur")
-        COMPREPLY=($projects)
+        projects=$(find "$project_dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null)
+        readarray -t COMPREPLY < <(compgen -W "$projects" -- "$cur")
     fi
 }
 
