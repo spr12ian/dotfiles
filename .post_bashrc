@@ -26,25 +26,33 @@ source_if_exists() {
 
 vcode() {
     local base_dir="${HOME}/projects"
-    local tmp_workspace_dir="/tmp/vcode_workspace_$$"
-    mkdir -p "$tmp_workspace_dir"
-    local workspace_file="${tmp_workspace_dir}/workspace.code-workspace"
 
     if [[ $# -eq 0 ]]; then
         echo "Usage: vcode [project1 project2 ...] or vcode --all"
         return 1
     fi
 
+    if [[ $# -eq 1 && -f "${base_dir}/$1.code-workspace" ]]; then
+        # Use existing named workspace file
+        code "${base_dir}/$1.code-workspace"
+        return
+    fi
+
+    # Else, build a temporary workspace file
+    local tmp_workspace_dir="/tmp/vcode_workspace_$$"
+    mkdir -p "$tmp_workspace_dir"
+    local workspace_file="${tmp_workspace_dir}/workspace.code-workspace"
+
     local folders=()
 
     if [[ "$1" == "--all" ]]; then
-        # Automatically include all Git repos under ~/projects/
+        # Include all immediate subdirectories of ~/projects/
         while IFS= read -r -d '' dir; do
             folders+=("{\"path\": \"$dir\"}")
-        done < <(find "$base_dir" -mindepth 1 -maxdepth 1 -type d -exec test -d "{}/.git" \; -print0)
+        done < <(find "$base_dir" -mindepth 1 -maxdepth 1 -type d -print0)
 
         if [[ ${#folders[@]} -eq 0 ]]; then
-            echo "⚠️ No Git repositories found under $base_dir"
+            echo "⚠️ No subdirectories found under $base_dir"
             return 1
         fi
     else
@@ -54,8 +62,6 @@ vcode() {
             if [[ ! -d "$dir" ]]; then
                 echo "❌ '$project' does not exist in $base_dir"
                 continue
-            elif [[ ! -d "$dir/.git" ]]; then
-                echo "⚠️ '$project' is not a Git repo"
             fi
             folders+=("{\"path\": \"$dir\"}")
         done
@@ -66,11 +72,11 @@ vcode() {
         fi
     fi
 
-    # Create temporary workspace file
+    # Write workspace JSON
     printf '{\n  "folders": [\n    %s\n  ]\n}\n' "$(
         IFS=,$'\n'
         echo "${folders[*]}"
-    )" >"$workspace_file"
+    )" > "$workspace_file"
 
     code "$workspace_file"
 }
