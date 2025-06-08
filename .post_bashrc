@@ -1,8 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+# Further testing of source-bash required
 # shellcheck source=/dev/null
-source "$HOME/.local/bin/source-bash"
+#source "$HOME/.local/bin/source-bash"
 
 add_path_if_exists() {
     local position="$1" dir="$2"
@@ -14,6 +15,63 @@ add_path_if_exists() {
         esac
     fi
 }
+
+source_if_exists() {
+    local file="$1"
+    if [ -f "$file" ]; then
+        # shellcheck source=/dev/null
+        source "$file"
+    fi
+}
+
+vcode() {
+    local base_dir="${HOME}/projects"
+    local tmp_workspace_dir="/tmp/vcode_workspace_$$"
+    mkdir -p "$tmp_workspace_dir"
+    local workspace_file="${tmp_workspace_dir}/workspace.code-workspace"
+
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: vcode [project1 project2 ...] or vcode --all"
+        return 1
+    fi
+
+    local folders=()
+
+    if [[ "$1" == "--all" ]]; then
+        # Automatically include all Git repos under ~/projects/
+        while IFS= read -r -d '' dir; do
+            folders+=("{\"path\": \"$dir\"}")
+        done < <(find "$base_dir" -mindepth 1 -maxdepth 1 -type d -exec test -d "{}/.git" \; -print0)
+
+        if [[ ${#folders[@]} -eq 0 ]]; then
+            echo "⚠️ No Git repositories found under $base_dir"
+            return 1
+        fi
+    else
+        # Manually specified projects
+        for project in "$@"; do
+            local dir="$base_dir/$project"
+            if [[ ! -d "$dir" ]]; then
+                echo "❌ '$project' does not exist in $base_dir"
+                continue
+            elif [[ ! -d "$dir/.git" ]]; then
+                echo "⚠️ '$project' is not a Git repo"
+            fi
+            folders+=("{\"path\": \"$dir\"}")
+        done
+
+        if [[ ${#folders[@]} -eq 0 ]]; then
+            echo "🚫 No valid projects to open"
+            return 1
+        fi
+    fi
+
+    # Create temporary workspace file
+    printf '{\n  "folders": [\n    %s\n  ]\n}\n' "$(IFS=,$'\n'; echo "${folders[*]}")" > "$workspace_file"
+
+    code "$workspace_file"
+}
+
 
 add_path_if_exists before "$HOME/.local/bin"
 
