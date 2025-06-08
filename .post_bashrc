@@ -67,7 +67,10 @@ vcode() {
     fi
 
     # Create temporary workspace file
-    printf '{\n  "folders": [\n    %s\n  ]\n}\n' "$(IFS=,$'\n'; echo "${folders[*]}")" > "$workspace_file"
+    printf '{\n  "folders": [\n    %s\n  ]\n}\n' "$(
+        IFS=,$'\n'
+        echo "${folders[*]}"
+    )" >"$workspace_file"
 
     code "$workspace_file"
 }
@@ -85,7 +88,6 @@ _vcode_autocomplete() {
 }
 
 complete -F _vcode_autocomplete vcode
-
 
 add_path_if_exists before "$HOME/.local/bin"
 
