@@ -72,6 +72,20 @@ vcode() {
     code "$workspace_file"
 }
 
+_vcode_autocomplete() {
+    local cur="${COMP_WORDS[COMP_CWORD]}"
+    local project_dir="$HOME/projects"
+    local projects
+
+    # Only complete if not using --all
+    if [[ "$COMP_CWORD" -ge 1 && "${COMP_WORDS[1]}" != --all ]]; then
+        projects=$(compgen -W "$(find "$project_dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n')" -- "$cur")
+        COMPREPLY=($projects)
+    fi
+}
+
+complete -F _vcode_autocomplete vcode
+
 
 add_path_if_exists before "$HOME/.local/bin"
 
