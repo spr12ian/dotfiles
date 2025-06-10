@@ -1,10 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-# Further testing of source-bash required
-# shellcheck source=/dev/null
-#source "$HOME/.local/bin/source-bash"
-
 add_path_if_exists() {
     local position="$1" dir="$2"
     if [ -d "$dir" ] && [[ ":$PATH:" != *":$dir:"* ]]; then
@@ -14,6 +10,30 @@ add_path_if_exists() {
         *) echo "Invalid position: $position (use 'before' or 'after')" >&2 ;;
         esac
     fi
+}
+
+run_local() {
+    local cmd="$1"
+    shift
+
+    local local_cmd="$HOME/.local/bin/$cmd"
+
+    # Check: file exists and is executable in .local/bin
+    if [ ! -x "$local_cmd" ]; then
+        echo "Command '$cmd' not found or not executable in $HOME/.local/bin." >&2
+        return 1
+    fi
+
+    # Check: it's the first found in PATH
+    local resolved
+    resolved="$(command -v "$cmd" 2>/dev/null)"
+    if [ "$resolved" != "$local_cmd" ]; then
+        echo "Command '$cmd' is not resolved to $HOME/.local/bin first in PATH (resolved to $resolved)." >&2
+        return 1
+    fi
+
+    # Safe to run
+    "$local_cmd" "$@"
 }
 
 source_if_exists() {
@@ -76,7 +96,7 @@ vcode() {
     printf '{\n  "folders": [\n    %s\n  ]\n}\n' "$(
         IFS=,$'\n'
         echo "${folders[*]}"
-    )" > "$workspace_file"
+    )" >"$workspace_file"
 
     code "$workspace_file"
 }
@@ -93,14 +113,7 @@ _vcode_autocomplete() {
     fi
 }
 
-complete -F _vcode_autocomplete vcode
-
-add_path_if_exists before "$HOME/.local/bin"
-
-# Do I really need go?
-#add_path_if_exists after "/usr/local/go/bin"
-#add_path_if_exists after "$HOME/go/bin"
-
+# set environment variables
 set -a
 
 IS_WSL=false
@@ -122,6 +135,23 @@ VSCODE_SETTINGS_FILE="$VSCODE_SETTINGS_DIR/settings.json"
 source_if_exists "$HOME/.env"
 
 set +a
+
+echo "Starting .post_bashrc"
+
+complete -F _vcode_autocomplete vcode
+
+add_path_if_exists before "$HOME/.local/bin"
+
+# go used for hugo
+add_path_if_exists after "/usr/local/go/bin"
+add_path_if_exists after "$HOME/go/bin"
+
+# focus-here is slow and should only run inn a true login shell
+if shopt -q login_shell; then
+    run_local focus-here
+fi
+
+echo "Finished running .post_bashrc"
 
 # ──────────────────────────────────────────────────────────────
 # 🧠 Bash History Cheat Sheet – Rerun & Edit Previous Commands
