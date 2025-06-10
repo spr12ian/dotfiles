@@ -151,6 +151,10 @@ if shopt -q login_shell; then
     run_local focus-here
 fi
 
+alias codehugo='code --profile "hugo-blog" ${GITHUB_PARENT}/hugo-blog.code-workspace'
+alias codefin='code --profile "python-project" ${GITHUB_PARENT}/our-finances.code-workspace'
+alias codepy='code --profile "python-projects"'
+
 echo "Finished running .post_bashrc"
 
 # ──────────────────────────────────────────────────────────────
