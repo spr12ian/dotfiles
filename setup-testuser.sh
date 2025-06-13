@@ -17,6 +17,7 @@ echo "$TEST_USER:$TEST_PASSWORD" | sudo chpasswd
 echo "Adding $TEST_USER to sudo group..."
 sudo usermod -aG sudo $TEST_USER
 
+
 copy_dotfiles() {
   # --- COPY DOTFILES ---
   echo "Copying dotfiles..."
@@ -45,5 +46,8 @@ copy_ssh_keys() {
 #copy_dotfiles
 copy_ssh_keys
 
+ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_testuser
+ssh-copy-id -i ~/.ssh/id_ed25519_testuser.pub testuser@localhost
+
 echo "Setup complete."
-echo "Now try: ssh $TEST_USER@localhost (password: $TEST_PASSWORD)"
+echo "Now try: ssh $TEST_USER@localhost"
