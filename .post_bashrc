@@ -1,7 +1,12 @@
 #!/bin/bash
 set -euo pipefail
-echo "DEBUG: Starting .post_bashrc"
+
 set -x  # trace every command
+
+# ─────────────────────────────────────────────
+# Utility functions
+# ─────────────────────────────────────────────
+
 add_path_if_exists() {
     local position="$1" dir="$2"
     if [ -d "$dir" ] && [[ ":$PATH:" != *":$dir:"* ]]; then
@@ -24,13 +29,12 @@ nvm() {
 run_local() {
     local cmd="$1"
     shift
-
     local local_cmd="$HOME/.local/bin/$cmd"
 
     # Check: file exists and is executable in .local/bin
     if [ ! -x "$local_cmd" ]; then
         echo "Command '$cmd' not found or not executable in $HOME/.local/bin." >&2
-        return 0
+        return 0 # Do not fail the shell
     fi
 
     # Check: it's the first found in PATH
@@ -38,11 +42,14 @@ run_local() {
     resolved="$(command -v "$cmd" 2>/dev/null)"
     if [ "$resolved" != "$local_cmd" ]; then
         echo "Command '$cmd' is not resolved to $HOME/.local/bin first in PATH (resolved to $resolved)." >&2
-        return 0
+        return 0 # Do not fail the shell
     fi
 
     # Safe to run
-    "$local_cmd" "$@"
+    "$local_cmd" "$@" || {
+        echo "⚠️ Command '$cmd' failed to execute. Skipping." >&2
+        return 0
+    }
 }
 
 source_if_exists() {
@@ -110,6 +117,10 @@ vcode() {
     code "$workspace_file"
 }
 
+# ─────────────────────────────────────────────
+# Completions
+# ─────────────────────────────────────────────
+
 _vcode_autocomplete() {
     local cur="${COMP_WORDS[COMP_CWORD]}"
     local project_dir="$HOME/projects"
@@ -122,7 +133,10 @@ _vcode_autocomplete() {
     fi
 }
 
-# set environment variables
+# ─────────────────────────────────────────────
+# Basic environment variables
+# ─────────────────────────────────────────────
+
 set -a
 
 NVM_DIR="$HOME/.nvm"
@@ -143,7 +157,6 @@ else
     VSCODE_SETTINGS_DIR="$HOME/.config/Code/User"
 fi
 
-
 # ignore unused variable
 # shellcheck disable=SC2034
 VSCODE_SETTINGS_FILE="$VSCODE_SETTINGS_DIR/settings.json"
@@ -152,7 +165,9 @@ source_if_exists "$HOME/.env"
 
 set +a
 
-echo "Starting .post_bashrc"
+# ─────────────────────────────────────────────
+# Execute commands
+# ─────────────────────────────────────────────
 
 complete -F _vcode_autocomplete vcode
 
@@ -168,13 +183,13 @@ if shopt -q login_shell; then
     #nvm
 fi
 
+# ─────────────────────────────────────────────
+# Aliases
+# ─────────────────────────────────────────────
+
 alias codehugo='code --profile "hugo-blog" ${GITHUB_PARENT}/hugo-blog.code-workspace'
 alias codefin='code --profile "python-project" ${GITHUB_PARENT}/our-finances.code-workspace'
 alias codepy='code --profile "python-projects"'
-
-echo "Finished running .post_bashrc"
-set +x
-echo "DEBUG: Finished .post_bashrc"
 
 # ──────────────────────────────────────────────────────────────
 # 🧠 Bash History Cheat Sheet – Rerun & Edit Previous Commands
@@ -205,3 +220,5 @@ echo "DEBUG: Finished .post_bashrc"
 #   $ !ls            → Repeats last command starting with 'ls'
 
 # ──────────────────────────────────────────────────────────────
+
+set +x # Turn off trace
