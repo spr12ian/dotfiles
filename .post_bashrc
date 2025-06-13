@@ -1,9 +1,13 @@
 #!/bin/bash
-# Only apply strict mode in non-interactive shells
-[[ $- != *i* ]] && set -euo pipefail
-
-
 # set -x  # trace every command
+
+# -----------------------------------------------------------
+# Shell strict mode for scripts — do not apply to interactive shells
+# -----------------------------------------------------------
+if [[ $- != *i* ]]; then
+    # We are in a non-interactive shell (likely a script)
+    set -euo pipefail
+fi
 
 # ─────────────────────────────────────────────
 # Utility functions
@@ -81,13 +85,13 @@ vcode() {
 
     if [[ $# -eq 0 ]]; then
         echo "Usage: vcode [project1 project2 ...] or vcode --all"
-        return 1
+        return 0
     fi
 
     if [[ $# -eq 1 && -f "${base_dir}/$1.code-workspace" ]]; then
         # Use existing named workspace file
         code "${base_dir}/$1.code-workspace"
-        return
+        return 0
     fi
 
     # Else, build a temporary workspace file
@@ -105,7 +109,7 @@ vcode() {
 
         if [[ ${#folders[@]} -eq 0 ]]; then
             echo "⚠️ No subdirectories found under $base_dir"
-            return 1
+            return 0
         fi
     else
         # Manually specified projects
@@ -120,7 +124,7 @@ vcode() {
 
         if [[ ${#folders[@]} -eq 0 ]]; then
             echo "🚫 No valid projects to open"
-            return 1
+            return 0
         fi
     fi
 
@@ -203,9 +207,11 @@ fi
 # Aliases
 # ─────────────────────────────────────────────
 
-alias codehugo='code --profile "hugo-blog" ${GITHUB_PARENT}/hugo-blog.code-workspace'
-alias codefin='code --profile "python-project" ${GITHUB_PARENT}/our-finances.code-workspace'
-alias codepy='code --profile "python-projects"'
+if [[ $- == *i* ]]; then
+    alias codehugo='code --profile "hugo-blog" ${GITHUB_PARENT}/hugo-blog.code-workspace'
+    alias codefin='code --profile "python-project" ${GITHUB_PARENT}/our-finances.code-workspace'
+    alias codepy='code --profile "python-projects"'
+fi
 
 # ──────────────────────────────────────────────────────────────
 # 🧠 Bash History Cheat Sheet – Rerun & Edit Previous Commands
