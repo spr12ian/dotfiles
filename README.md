@@ -28,3 +28,6 @@ curl -fsSL "https://raw.githubusercontent.com/$GITHUB_USER_NAME/$GITHUB_SETUP_RE
 
 # Use setup-testuser.sh to setup a test user
 # User cleanup-testuser.sh to cleanup afterwards
+
+This should map to an ssh key on GitHub
+`sudo ssh-keygen -lf .ssh/id_ed25519.pub`
