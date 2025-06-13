@@ -371,9 +371,23 @@ setup_symbolic_links
 # Check if .bashrc already has .post_bashrc
 
 if ! grep -q ".post_bashrc" "$HOME"/.bashrc; then
-    # We want this to output $HOME without expansion
-    # shellcheck disable=SC2016
-    echo 'source "$HOME"/.post_bashrc' >>"$HOME/.bashrc"
+    echo "Appending .post_bashrc source block to .bashrc..."
+    cat <<'EOF' >> "$HOME/.bashrc"
+
+# ============================================================
+# User customisation block — added manually
+# ============================================================
+
+if [ -f "$HOME/.post_bashrc" ]; then
+    # shellcheck source=/dev/null
+    source "$HOME/.post_bashrc"
+fi
+
+# ============================================================
+# End of user customisation block
+# ============================================================
+
+EOF
 fi
 
 cp "$GITHUB_PARENT/$GITHUB_SETUP_REPO/.post_bashrc" "$HOME"
