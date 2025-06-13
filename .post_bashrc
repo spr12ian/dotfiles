@@ -26,28 +26,42 @@ nvm() {
     nvm "$@"
 }
 
+# Map of verified safe local commands
+declare -A _RUN_LOCAL_SAFE_CACHE=()
+
 run_local() {
     local cmd="$1"
     shift
     local local_cmd="$HOME/.local/bin/$cmd"
 
-    # Check: file exists and is executable in .local/bin
+    # Check cache first
+    if [[ "${_RUN_LOCAL_SAFE_CACHE[$cmd]-}" == "safe" ]]; then
+        "$local_cmd" "$@" || {
+            echo "⚠️ Command '$cmd' failed. Skipping." >&2
+            return 0
+        }
+        return 0
+    fi
+
+    # First-time check
     if [ ! -x "$local_cmd" ]; then
-        echo "Command '$cmd' not found or not executable in $HOME/.local/bin." >&2
-        return 0 # Do not fail the shell
+        echo "⚠️ Command '$cmd' not found or not executable in $HOME/.local/bin. Skipping." >&2
+        _RUN_LOCAL_SAFE_CACHE["$cmd"]="missing"
+        return 0
     fi
 
-    # Check: it's the first found in PATH
     local resolved
-    resolved="$(command -v "$cmd" 2>/dev/null)"
+    resolved="$(command -v "$cmd" 2>/dev/null || true)"
     if [ "$resolved" != "$local_cmd" ]; then
-        echo "Command '$cmd' is not resolved to $HOME/.local/bin first in PATH (resolved to $resolved)." >&2
-        return 0 # Do not fail the shell
+        echo "⚠️ Command '$cmd' is not resolved to $HOME/.local/bin first in PATH (resolved to $resolved). Skipping." >&2
+        _RUN_LOCAL_SAFE_CACHE["$cmd"]="wrong_path"
+        return 0
     fi
 
-    # Safe to run
+    # Safe → cache this fact
+    _RUN_LOCAL_SAFE_CACHE["$cmd"]="safe"
     "$local_cmd" "$@" || {
-        echo "⚠️ Command '$cmd' failed to execute. Skipping." >&2
+        echo "⚠️ Command '$cmd' failed. Skipping." >&2
         return 0
     }
 }
