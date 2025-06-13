@@ -12,6 +12,14 @@ add_path_if_exists() {
     fi
 }
 
+# Lazy-load nvm (significant speed improvement)
+nvm() {
+    unset -f nvm
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+    nvm "$@"
+}
+
 run_local() {
     local cmd="$1"
     shift
@@ -116,6 +124,8 @@ _vcode_autocomplete() {
 # set environment variables
 set -a
 
+NVM_DIR="$HOME/.nvm"
+
 IS_WSL=false
 if grep -qi microsoft /proc/version; then
     IS_WSL=true
@@ -146,9 +156,10 @@ add_path_if_exists before "$HOME/.local/bin"
 add_path_if_exists after "/usr/local/go/bin"
 add_path_if_exists after "$HOME/go/bin"
 
-# focus-here is slow and should only run inn a true login shell
+# focus-here is slow and should only run in a true login shell
 if shopt -q login_shell; then
     run_local focus-here
+    nvm
 fi
 
 alias codehugo='code --profile "hugo-blog" ${GITHUB_PARENT}/hugo-blog.code-workspace'

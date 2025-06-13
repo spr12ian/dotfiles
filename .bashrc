@@ -116,15 +116,6 @@ if ! shopt -oq posix; then
   fi
 fi
 
-# Lazy-load nvm (significant speed improvement)
-export NVM_DIR="$HOME/.nvm"
-nvm() {
-    unset -f nvm
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-    nvm "$@"
-}
-
 if [ -f "$HOME/.post_bashrc" ]; then
     # shellcheck source=/dev/null
     source "$HOME/.post_bashrc"
