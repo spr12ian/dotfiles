@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-set -x  # trace every command
+# set -x  # trace every command
 
 # ─────────────────────────────────────────────
 # Utility functions
@@ -235,4 +235,4 @@ alias codepy='code --profile "python-projects"'
 
 # ──────────────────────────────────────────────────────────────
 
-set +x # Turn off trace
+# set +x # Turn off trace
