@@ -8,7 +8,3 @@ else
     echo ".bashrc not found in $HOME." >&2
     exit 1
 fi
-
-if declare -f load_post_bashrc >/dev/null; then
-    load_post_bashrc
-fi
