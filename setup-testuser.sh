@@ -46,8 +46,19 @@ copy_ssh_keys() {
 #copy_dotfiles
 copy_ssh_keys
 
-ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_testuser
-ssh-copy-id -i ~/.ssh/id_ed25519_testuser.pub testuser@localhost
+# Optional: remove old key first (uncomment if you want this behavior)
+# rm -f ~/.ssh/id_ed25519_$TEST_USER ~/.ssh/id_ed25519_$TEST_USER.pub
+
+# OR: skip generation if key exists
+if [ -f ~/.ssh/id_ed25519_$TEST_USER ]; then
+  echo "SSH key ~/.ssh/id_ed25519_$TEST_USER already exists, skipping generation."
+else
+  echo "Generating SSH key for $TEST_USER..."
+  ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_$TEST_USER -N "" -q -C "CALLER=$(whoami)"
+fi
+
+ssh-copy-id -i ~/.ssh/id_ed25519_$TEST_USER.pub $TEST_USER@localhost
 
 echo "Setup complete."
-echo "Now try: ssh $TEST_USER@localhost"
+
+echo "Now try: ssh -i ~/.ssh/id_ed25519_$TEST_USER $TEST_USER@localhost"

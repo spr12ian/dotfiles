@@ -4,6 +4,10 @@ set -euo pipefail
 TEST_USER="testuser"
 
 echo "Stopping all processes for $TEST_USER..."
+
+# Wait a moment for processes to fully exit
+sleep 3
+
 if pkill -u $TEST_USER; then
     echo "Processes killed."
 else
@@ -11,7 +15,7 @@ else
 fi
 
 # Wait a moment for processes to fully exit
-sleep 2
+sleep 3
 
 echo "Deleting user $TEST_USER..."
 sudo userdel -r $TEST_USER || echo "User $TEST_USER does not exist."
