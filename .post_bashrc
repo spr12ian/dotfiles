@@ -1,5 +1,7 @@
 #!/bin/bash
-set -euo pipefail
+# Only apply strict mode in non-interactive shells
+[[ $- != *i* ]] && set -euo pipefail
+
 
 # set -x  # trace every command
 
