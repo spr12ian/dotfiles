@@ -26,7 +26,20 @@ add_path_if_exists() {
 
 # Detect if we're being run as part of VS Code's userEnvProbe
 is_user_env_probe() {
-    ps -o args= -p "$PPID" | grep -q 'userEnvProbe'
+    ps -eo pid,ppid,args | awk '
+        NR > 1 {
+            pid[$1] = $2
+            cmd[$1] = substr($0, index($0,$3))
+        }
+        END {
+            p = ENVIRON["PPID"]
+            while (p > 1) {
+                if (cmd[p] ~ /userEnvProbe/) exit 0
+                p = pid[p]
+            }
+            exit 1
+        }
+    '
 }
 
 # Lazy-load nvm (significant speed improvement)
