@@ -197,7 +197,7 @@ add_path_if_exists before "$HOME/.local/bin"
 add_path_if_exists after "/usr/local/go/bin"
 add_path_if_exists after "$HOME/go/bin"
 
-if shopt -q login_shell && [[ $- == *i* ]]; then
+if shopt -q login_shell && [[ $- == *i* ]] && [[ "$TERM_PROGRAM" != "vscode" ]]; then
     # Interactive login shell
     run_local focus-here
     #nvm
