@@ -197,8 +197,8 @@ add_path_if_exists before "$HOME/.local/bin"
 add_path_if_exists after "/usr/local/go/bin"
 add_path_if_exists after "$HOME/go/bin"
 
-# focus-here is slow and should only run in a true login shell
-if shopt -q login_shell; then
+if shopt -q login_shell && [[ $- == *i* ]]; then
+    # Interactive login shell
     run_local focus-here
     #nvm
 fi
@@ -208,6 +208,7 @@ fi
 # ─────────────────────────────────────────────
 
 if [[ $- == *i* ]]; then
+    # We are in an interactive shell
     alias codehugo='code --profile "hugo-blog" ${GITHUB_PARENT}/hugo-blog.code-workspace'
     alias codefin='code --profile "python-project" ${GITHUB_PARENT}/our-finances.code-workspace'
     alias codepy='code --profile "python-projects"'
