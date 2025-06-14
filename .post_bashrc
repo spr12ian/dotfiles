@@ -24,6 +24,11 @@ add_path_if_exists() {
     fi
 }
 
+# Detect if we're being run as part of VS Code's userEnvProbe
+is_user_env_probe() {
+    ps -o args= -p "$PPID" | grep -q 'userEnvProbe'
+}
+
 # Lazy-load nvm (significant speed improvement)
 nvm() {
     unset -f nvm
@@ -197,7 +202,7 @@ add_path_if_exists before "$HOME/.local/bin"
 add_path_if_exists after "/usr/local/go/bin"
 add_path_if_exists after "$HOME/go/bin"
 
-if shopt -q login_shell && [[ $- == *i* ]] && [[ "$TERM_PROGRAM" != "vscode" ]]; then
+if shopt -q login_shell && [[ $- == *i* ]] && ! is_user_env_probe; then
     # Interactive login shell
     run_local focus-here
     #nvm
