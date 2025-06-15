@@ -31,4 +31,6 @@ else
     echo "Group $TEST_USER not found."
 fi
 
+sudo rm -f /tmp/${TEST_USER}_*
+
 echo "Cleanup complete."
