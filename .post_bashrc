@@ -172,7 +172,7 @@ _vcode_autocomplete() {
 }
 
 # ─────────────────────────────────────────────
-# Basic environment variables
+# Environment variables
 # ─────────────────────────────────────────────
 
 set -a
@@ -215,16 +215,6 @@ add_path_if_exists before "$HOME/.local/bin"
 add_path_if_exists after "/usr/local/go/bin"
 add_path_if_exists after "$HOME/go/bin"
 
-if shopt -q login_shell && [[ $- == *i* ]]; then
-    # Interactive login shell
-    if is_user_env_probe; then
-        echo "🚫 Skipping focus-here — VS Code userEnvProbe" >> /tmp/bash_env_debug.log
-    else
-        echo "✅ Running focus-here" >> /tmp/bash_env_debug.log
-        run_local focus-here
-    fi
-fi
-
 # ─────────────────────────────────────────────
 # Aliases
 # ─────────────────────────────────────────────
@@ -234,6 +224,7 @@ if [[ $- == *i* ]]; then
     alias codehugo='code --profile "hugo-blog" ${GITHUB_PARENT}/hugo-blog.code-workspace'
     alias codefin='code --profile "python-project" ${GITHUB_PARENT}/our-finances.code-workspace'
     alias codepy='code --profile "python-projects"'
+    alias testlogin='ssh -i ~/.ssh/id_ed25519_testuser testuser@localhost'
 fi
 
 # ──────────────────────────────────────────────────────────────

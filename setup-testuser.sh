@@ -8,15 +8,18 @@ TEST_USER="testuser"
 # Password to set:
 TEST_PASSWORD="test"
 
-# --- ADD USER ---
-echo "Creating user $TEST_USER..."
-sudo adduser --disabled-password --gecos "" $TEST_USER
-echo "$TEST_USER:$TEST_PASSWORD" | sudo chpasswd
+add_user() {
+  # --- ADD USER ---
+  echo "Creating user $TEST_USER..."
+  sudo adduser --disabled-password --gecos "" $TEST_USER
+  echo "$TEST_USER:$TEST_PASSWORD" | sudo chpasswd
+}
 
-# --- ADD TO SUDO GROUP ---
-echo "Adding $TEST_USER to sudo group..."
-sudo usermod -aG sudo $TEST_USER
-
+add_user_to_sudo_group() {
+  # --- ADD TO SUDO GROUP ---
+  echo "Adding $TEST_USER to sudo group..."
+  sudo usermod -aG sudo $TEST_USER
+}
 
 copy_dotfiles() {
   # --- COPY DOTFILES ---
@@ -41,6 +44,18 @@ copy_ssh_keys() {
     fi
   fi
 }
+
+if_variable_exists() {
+  local variable_name=$1
+  if [[ -v ${!variable_name} ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+add_user
+add_user_to_sudo_group
 
 # Uncomment as required
 #copy_dotfiles
