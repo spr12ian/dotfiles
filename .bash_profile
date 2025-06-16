@@ -15,7 +15,7 @@ declare -p TEST_DOTFILE_NAME &>/dev/null && echo "gamma"
 # Execute commands
 # ─────────────────────────────────────────────
 
-declare -p TEST_DOTFILE_NAME &>/dev/null && start_dotfile_test "$TEST_DOTFILE_NAME"
+declare -p TEST_DOTFILE_NAME &>/dev/null && start_dotfile_test
 declare -p TEST_DOTFILE_NAME &>/dev/null && echo "alpha"
 
 if shopt -q login_shell; then
@@ -37,4 +37,4 @@ if shopt -q login_shell; then
     fi
 fi
 
-declare -p TEST_DOTFILE_NAME &>/dev/null && finish_dotfile_test
+declare -p TEST_DOTFILE_NAME &>/dev/null && finish_dotfile_test "$TEST_DOTFILE_NAME"
