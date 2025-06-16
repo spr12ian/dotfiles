@@ -24,6 +24,8 @@ add_path_if_exists() {
 }
 
 finish_dotfile_test() {
+    local sources=("${BASH_SOURCE[@]:1}")  # Skip this function itself
+    (IFS=' '; echo "This script           : ${sources[0]}")
     echo -e "finish_dotfile_test started at: $(date)"
     echo -e "🛑 Exiting"
     echo -e "finish_dotfile_test finished at: $(date)"
