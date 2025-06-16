@@ -26,11 +26,11 @@ add_path_if_exists() {
 finish_dotfile_test() {
     local name="$1"
     local sources=("${BASH_SOURCE[@]:1}")  # Skip this function itself
-    (IFS=' '; echo "This script           : ${sources[0]}")
     echo -e "finish_dotfile_test started at: $(date)"
-    echo -e "finish_dotfile_test finished at: $(date)"
+    (IFS=' '; echo "This script           : ${sources[0]}")
     echo -e "\$name=$name"
     echo -e "\$TEST_DOTFILE_NAME=$TEST_DOTFILE_NAME"
+    echo -e "finish_dotfile_test finished at: $(date)"
     if [[ "$name" == "$TEST_DOTFILE_NAME" ]]; then
         echo -e "🛑 Exiting"
         exit
@@ -105,6 +105,8 @@ run_local() {
 
 start_dotfile_test() {
     echo "start_dotfile_test started at: $(date)"
+    
+    echo -e "\$TEST_DOTFILE_NAME=$TEST_DOTFILE_NAME"
     
     local sources=("${BASH_SOURCE[@]:1}")  # Skip this function itself
 
@@ -281,8 +283,7 @@ if [[ $- == *i* ]]; then
     alias testlogin='ssh -i ~/.ssh/id_ed25519_testuser testuser@localhost'
 fi
 
-declare -p TEST_DOTFILE_NAME &>/dev/null && start_dotfile_test && finish_dotfile_test "$TEST_DOTFILE_NAME"
-
+declare -p TEST_DOTFILE_NAME &>/dev/null && start_dotfile_test && finish_dotfile_test post_bashrc
 # ──────────────────────────────────────────────────────────────
 # 🧠 Bash History Cheat Sheet – Rerun & Edit Previous Commands
 # ──────────────────────────────────────────────────────────────

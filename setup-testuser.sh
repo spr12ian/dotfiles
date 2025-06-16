@@ -49,7 +49,7 @@ copy_dotfiles() {
   fi
 
   echo "Copying dotfiles..."
-  for file in .bash_profile .bashrc .post_bashrc .bash_profile_exit; do
+  for file in .hushlogin .bash_profile .bashrc .post_bashrc .bash_profile_exit; do
     if [ -f "$dotfiles_dir/$file" ]; then
       sudo cp "$dotfiles_dir/$file" "${TEST_USER_HOME}"
       sudo chown "${TEST_USER}:${TEST_USER}" "${TEST_USER_HOME}/$file"
