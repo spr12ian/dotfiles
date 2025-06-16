@@ -1,5 +1,5 @@
 #!/bin/bash
-
+echo "TEST_DOTFILE_NAME: $TEST_DOTFILE_NAME"
 # Always source .bashrc if it exists (needed for interactive shells)
 if [ -f "$HOME/.bashrc" ]; then
     # shellcheck source=/dev/null
@@ -13,28 +13,21 @@ fi
 # Execute commands
 # ─────────────────────────────────────────────
 
-log_this bash_profile
+declare -p TEST_DOTFILE_NAME &>/dev/null && start_dotfile_test "$TEST_DOTFILE_NAME"
 
 if shopt -q login_shell; then
-    echo "Login  shell"
+    declare -p TEST_DOTFILE_NAME &>/dev/null && echo "Login shell"
     if [[ $- == *i* ]]; then
-        echo "Interactive  shell"
+        declare -p TEST_DOTFILE_NAME &>/dev/null && echo "Interactive shell"
 
         # Interactive login shell
         if is_user_env_probe; then
-            echo "🚫 Skipping focus-here — VS Code userEnvProbe" >> /tmp/bash_env_debug.log
+            declare -p TEST_DOTFILE_NAME &>/dev/null && echo "🚫 Skipping focus-here — VS Code userEnvProbe"
         else
-            echo "✅ Running focus-here" >> /tmp/bash_env_debug.log
+            declare -p TEST_DOTFILE_NAME &>/dev/null && echo "✅ Running focus-here"
             run_local focus-here
         fi
     fi
 fi
 
-# shellcheck source=/dev/null
-if [[ -f "$HOME/.bash_profile_exit" ]]; then
-    echo "🛑 .bash_profile_exit file detected — exiting after validation"
-    rm -f "$HOME/.bash_profile_exit"
-    echo "=== .bash_profile finished ==="
-    exit
-fi
-
+declare -p TEST_DOTFILE_NAME &>/dev/null && finish_dotfile_test

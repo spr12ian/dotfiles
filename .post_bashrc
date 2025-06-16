@@ -23,6 +23,13 @@ add_path_if_exists() {
     fi
 }
 
+finish_dotfile_test() {
+    echo -e "finish_dotfile_test started at: $(date)"
+    echo -e "🛑 Exiting"
+    echo -e "finish_dotfile_test finished at: $(date)"
+    exit
+}
+
 # Detect if we're being run as part of VS Code's userEnvProbe
 is_user_env_probe() {
     ps -eo pid,ppid,args | awk '
@@ -40,28 +47,6 @@ is_user_env_probe() {
         }
     '
 }
-
-log_this() {
-    local sources=("${BASH_SOURCE[@]:1}")  # Skip this function itself
-    local name="$1"                        # First argument to name the log
-    shift                                  # Remove it from the list of parameters
-
-    (
-        echo "=== log_this started : $(date) ==="
-        echo "Shell type           : $0"
-        (IFS=' '; echo "Call stack           : ${sources[*]}")
-        (IFS=' '; echo "Parameters           : $*")
-        echo "Current options (\$-): $-"
-        echo "Is interactive?      : [[ \$- == *i* ]] → $([[ $- == *i* ]] && echo yes || echo no)"
-        echo "Is login shell?      : shopt -q login_shell → $(shopt -q login_shell && echo yes || echo no)"
-        echo "PS1 set?             : declare -p PS1 &>/dev/null → $(declare -p PS1 &>/dev/null && echo yes || echo no)"
-        echo "TERM_PROGRAM         : ${TERM_PROGRAM:-}"
-        echo "Parent process       : $(ps -o ppid= -p $$ | xargs ps -o comm= -p)"
-        echo "TTY                  : $(tty)"
-        echo "=== log_this finished: $(date) ==="
-    ) > "/tmp/${USER}_${name}.log"
-}
-
 
 # Lazy-load nvm (significant speed improvement)
 nvm() {
@@ -109,6 +94,47 @@ run_local() {
         echo "⚠️ Command '$cmd' failed. Skipping." >&2
         return 0
     }
+}
+
+start_dotfile_test() {
+    echo "start_dotfile_test started at: $(date)"
+    
+    local sources=("${BASH_SOURCE[@]:1}")  # Skip this function itself
+
+    echo "Shell type           : $0"
+    echo "Bash version         : $BASH_VERSION"
+    (IFS=' '; echo "Call stack           : ${sources[*]}")
+    echo "Current options (\$-): $-"
+
+    echo -n "Is interactive?      : [[ \$- == *i* ]] → "
+    [[ $- == *i* ]] && echo yes || echo no
+
+    echo -n "Is login shell?      : shopt -q login_shell → "
+    shopt -q login_shell && echo yes || echo no
+
+    echo -n "PS1 set?             : declare -p PS1 &>/dev/null → "
+    declare -p PS1 &>/dev/null && echo yes || echo no
+
+    echo "TERM_PROGRAM         : ${TERM_PROGRAM:-}"
+    echo "Host                 : $(hostname -f 2>/dev/null || hostname)"
+    echo "Shell PID            : $$"
+
+
+    # More portable parent process command
+    local parent_pid parent_cmd
+    parent_pid=$(ps -o ppid= -p $$ 2>/dev/null)
+    parent_cmd=$(ps -o comm= -p "$parent_pid" 2>/dev/null || echo unknown)
+    echo "Parent process       : ${parent_cmd}"
+
+    echo "TTY                  : $(tty 2>/dev/null || echo not-a-tty)"
+
+    echo -e "\n--- Environment Variables ---"
+    env | sort
+    echo -e "\n--- Aliases ---"
+    alias
+    echo -e "\n--- Functions ---"
+    compgen -A function
+    echo -e "\n--- start_dotfile_test finished at: $(date)\n"
 }
 
 source_if_exists() {
@@ -248,7 +274,7 @@ if [[ $- == *i* ]]; then
     alias testlogin='ssh -i ~/.ssh/id_ed25519_testuser testuser@localhost'
 fi
 
-log_this post_bashrc
+declare -p TEST_DOTFILE_NAME &>/dev/null && start_dotfile_test "$TEST_DOTFILE_NAME" && finish_dotfile_test
 
 # ──────────────────────────────────────────────────────────────
 # 🧠 Bash History Cheat Sheet – Rerun & Edit Previous Commands

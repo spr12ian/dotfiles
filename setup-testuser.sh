@@ -94,7 +94,7 @@ main() {
 
   enable_quick_ssh_login
 
-  #validate_bashrc_behavior
+  validate_bashrc_behavior
   validate_bash_profile_behavior
 
   echo "Now try: ssh -i $HOME/.ssh/id_ed25519_${TEST_USER} ${TEST_USER}@localhost"
@@ -121,44 +121,38 @@ validate_dotfile_behavior() {
 
   # Write out current dotfile content to log
   {
-    echo -e "\n=== Contents of ${TEST_USER_HOME}/${dotfile} ==="
+    echo -e "=== Contents of ${TEST_USER_HOME}/${dotfile} ==="
     sudo cat "${TEST_USER_HOME}/${dotfile}"
-    echo -e "\n=== End of ${TEST_USER_HOME}/${dotfile} ==="
+    echo -e "\n=== End of ${TEST_USER_HOME}/${dotfile} ===\n"
   } > "${log_file}"
 
   if [[ "$file" == "bashrc" ]]; then
     {
-      echo -e "\n=== Contents of ${TEST_USER_HOME}/.post_bashrc ==="
+      echo -e "=== Contents of ${TEST_USER_HOME}/.post_bashrc ==="
       sudo cat "${TEST_USER_HOME}/.post_bashrc"
-      echo -e "\n=== End of ${TEST_USER_HOME}/.post_bashrc ==="
+      echo -e "\n=== End of ${TEST_USER_HOME}/.post_bashrc ===\n"
     } >> "${log_file}"
   fi
 
   echo "Validating ${dotfile} behavior for ${TEST_USER}..."
-
-  local finished="=== ${dotfile} finished ==="
+  echo "There should be a logfile at ${log_file}"
 
   set -xv
 
   if [[ "$file" == "bashrc" ]]; then
-    ssh "${ssh_opts[@]}" "${TEST_USER}@localhost" "bash -i" <<EOF >> "${log_file}" 2>&1
-echo "=== ${dotfile} started ==="
-echo "Started at: $(date)"
-env | sort
-alias
-compgen -A function
-echo "Finished at: $(date)"
-echo "${finished}"
-exit
-EOF
+    ssh "${ssh_opts[@]}" "${TEST_USER}@localhost" \
+    "TEST_DOTFILE_NAME='post_bashrc' bash -i" >> "${log_file}" 2>&1
+    #"TEST_DOTFILE_NAME=${TEST_DOTFILE_NAME@Q} bash -i" >> "${log_file}" 2>&1
   else
-    ssh "${ssh_opts[@]}" "${TEST_USER}@localhost" "bash -i --login" >> "${log_file}" 2>&1
+    ssh "${ssh_opts[@]}" "${TEST_USER}@localhost" \
+    "TEST_DOTFILE_NAME='bash_profile' bash --login -i" >> "${log_file}" 2>&1
   fi
+  
   echo "The log file can be found at ${log_file}"
 
   set +xv
 
-  if grep -q "${finished}" "${log_file}"; then
+  if grep -q "dotfile_test finished" "${log_file}"; then
     echo "✅ ${dotfile} finished!"
   else
     echo "❌ ${dotfile} appears to have a problem."
