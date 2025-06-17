@@ -13,14 +13,28 @@ fi
 # ─────────────────────────────────────────────
 
 add_path_if_exists() {
-    local position="$1" dir="$2"
-    if [ -d "$dir" ] && [[ ":$PATH:" != *":$dir:"* ]]; then
+    local position="$1"
+    shift
+
+    local dir resolved  # Declare function-local variables
+
+    for dir in "$@"; do
+        # Expand and validate directory
+        if [[ -z "$dir" || ! -d "$dir" ]]; then
+            return
+        fi
+        resolved=$(realpath -m "$dir" 2>/dev/null) || return
+
+        # Already in PATH?
+        [[ ":$PATH:" == *":$resolved:"* ]] && return
+
+        # Add to PATH
         case "$position" in
-        before) PATH="$dir:$PATH" ;;
-        after) PATH="$PATH:$dir" ;;
-        *) echo "Invalid position: $position (use 'before' or 'after')" >&2 ;;
+            before) PATH="$resolved:$PATH" ;;
+            after)  PATH="$PATH:$resolved" ;;
+            *) echo "Invalid position: $position (use 'before' or 'after')" >&2 ;;
         esac
-    fi
+    done
 }
 
 finish_dotfile_test() {
@@ -61,6 +75,24 @@ nvm() {
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
     [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
     nvm "$@"
+}
+
+print_path() {
+  local i=1
+  echo "🔍 Current \$PATH entries:"
+  echo "$PATH" | tr ':' '\n' | while read -r dir; do
+    if [ -d "$dir" ]; then
+      printf "%2d. ✅ %s\n" "$i" "$dir"
+    else
+      printf "%2d. ❌ %s (not a directory)\n" "$i" "$dir"
+    fi
+    i=$((i + 1))
+  done
+}
+
+remove_path() {
+  local remove="$1"
+  PATH=$(echo "$PATH" | tr ':' '\n' | grep -v -x "$remove" | paste -sd:)
 }
 
 # Map of verified safe local commands
@@ -211,10 +243,6 @@ vcode() {
     code "$workspace_file"
 }
 
-# ─────────────────────────────────────────────
-# Completions
-# ─────────────────────────────────────────────
-
 _vcode_autocomplete() {
     local cur="${COMP_WORDS[COMP_CWORD]}"
     local project_dir="$HOME/projects"
@@ -266,16 +294,31 @@ fi
 set +a
 
 # ─────────────────────────────────────────────
-# Execute commands
+# Completions
 # ─────────────────────────────────────────────
 
 complete -F _vcode_autocomplete vcode
 
+# ─────────────────────────────────────────────
+# PATH
+# ─────────────────────────────────────────────
+
+remove_path "/usr/games"
+remove_path "/usr/local/games"
+
+# before
+
 add_path_if_exists before "$HOME/.local/bin"
 
+#after
+
 # go used for hugo
-add_path_if_exists after "/usr/local/go/bin"
-add_path_if_exists after "$HOME/go/bin"
+add_path_if_exists after \
+    "/mnt/c/Program Files/Microsoft VS Code/bin" \
+    "/usr/local/go/bin" \
+    "$HOME/go/bin"
+
+
 
 # ─────────────────────────────────────────────
 # Aliases
