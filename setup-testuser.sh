@@ -29,8 +29,8 @@ add_user_to_sudo_group() {
   sudo usermod -aG sudo ${TEST_USER}
 }
 
-check_requirements() { 
-  if ! ssh_server_is_running; then  
+check_requirements() {
+  if ! ssh_server_is_running; then
     echo "⚠️ SSH server not running. You may need to start it with: sudo systemctl start ssh"
     exit 1
   fi
@@ -137,20 +137,15 @@ validate_dotfile_behavior() {
   echo "Validating ${dotfile} behavior for ${TEST_USER}..."
   echo "There should be a logfile at ${log_file}"
 
-  set -xv
-
   if [[ "$file" == "bashrc" ]]; then
     ssh "${ssh_opts[@]}" "${TEST_USER}@localhost" \
     "TEST_DOTFILE_NAME='post_bashrc' bash -i" >> "${log_file}" 2>&1
-    #"TEST_DOTFILE_NAME=${TEST_DOTFILE_NAME@Q} bash -i" >> "${log_file}" 2>&1
   else
     ssh "${ssh_opts[@]}" "${TEST_USER}@localhost" \
     "TEST_DOTFILE_NAME='bash_profile' bash --login -i" >> "${log_file}" 2>&1
   fi
-  
-  echo "The log file can be found at ${log_file}"
 
-  set +xv
+  echo "The log file can be found at ${log_file}"
 
   if grep -q "dotfile_test finished" "${log_file}"; then
     echo "✅ ${dotfile} finished!"
