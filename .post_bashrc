@@ -105,9 +105,9 @@ run_local() {
 
 start_dotfile_test() {
     echo "start_dotfile_test started at: $(date)"
-    
+
     echo -e "\$TEST_DOTFILE_NAME=$TEST_DOTFILE_NAME"
-    
+
     local sources=("${BASH_SOURCE[@]:1}")  # Skip this function itself
 
     echo "Shell type           : $0"
@@ -162,9 +162,9 @@ vcode() {
         return 0
     fi
 
-    if [[ $# -eq 1 && -f "${base_dir}/$1.code-workspace" ]]; then
+    if [[ $# -eq 1 && -f "${VSCODE_WORKSPACE_DIR}/$1.code-workspace" ]]; then
         # Use existing named workspace file
-        code "${base_dir}/$1.code-workspace"
+        code "${VSCODE_WORKSPACE_DIR}/$1.code-workspace"
         return 0
     fi
 
@@ -257,6 +257,12 @@ VSCODE_SETTINGS_FILE="$VSCODE_SETTINGS_DIR/settings.json"
 
 source_if_exists "$HOME/.env"
 
+if declare -p GITHUB_PARENT &>/dev/null; then
+    VSCODE_WORKSPACE_DIR="$GITHUB_PARENT/my-vs-code/workspaces"
+else
+    echo "⚠️ GITHUB_PARENT not set"
+fi
+
 set +a
 
 # ─────────────────────────────────────────────
@@ -277,9 +283,6 @@ add_path_if_exists after "$HOME/go/bin"
 
 if [[ $- == *i* ]]; then
     # We are in an interactive shell
-    alias codehugo='code --profile "hugo-blog" ${GITHUB_PARENT}/hugo-blog.code-workspace'
-    alias codefin='code --profile "python-project" ${GITHUB_PARENT}/our-finances.code-workspace'
-    alias codepy='code --profile "python-projects"'
     alias testlogin='ssh -i ~/.ssh/id_ed25519_testuser testuser@localhost'
 fi
 
