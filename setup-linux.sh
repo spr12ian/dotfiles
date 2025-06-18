@@ -270,6 +270,7 @@ setup_symbolic_links() {
     log_block_start
 
     original_bin_dir="${GITHUB_PARENT}/bin"
+
     mkdir -p "${SYMLINKS_BIN_DIR}"
 
     # Check source directory
