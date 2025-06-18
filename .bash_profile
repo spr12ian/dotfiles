@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Always source .bashrc if it exists (needed for interactive shells)
 if [ -f "$HOME/.bashrc" ]; then

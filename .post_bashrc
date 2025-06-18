@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # -----------------------------------------------------------
 # Shell strict mode for scripts — do not apply to interactive shells
