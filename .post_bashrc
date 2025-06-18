@@ -37,12 +37,6 @@ add_path_if_exists() {
     done
 }
 
-debug() {
-  if [[ "${DEBUG:-}" == "true" ]]; then
-    "$@"
-  fi
-}
-
 finish_dotfile_test() {
     local name="$1"
     local sources=("${BASH_SOURCE[@]:1}")  # Skip this function itself
