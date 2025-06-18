@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SYMLINKS_BIN_DIR="$HOME/.symlinks/bin"
+
 set_debug_log() {
     # Location of the debug log
     DEBUG_LOG="${DEBUG_LOG:-/tmp/$(basename "$0").log}"
@@ -267,28 +269,27 @@ setup_github() {
 setup_symbolic_links() {
     log_block_start
 
-    source_dir="${GITHUB_PARENT}/bin"
-    target_dir="$HOME/.local/bin"
-    mkdir -p "${target_dir}"
+    original_bin_dir="${GITHUB_PARENT}/bin"
+    mkdir -p "${SYMLINKS_BIN_DIR}"
 
     # Check source directory
-    if [ ! -d "${source_dir}" ]; then
-        log_error "Source directory does not exist: ${source_dir}"
+    if [ ! -d "${original_bin_dir}" ]; then
+        log_error "Source directory does not exist: ${original_bin_dir}"
         exit 1
     fi
 
     # Check target directory is writable
-    if [ ! -w "${target_dir}" ]; then
-        log_error "Target directory is not writable: ${target_dir}"
+    if [ ! -w "${SYMLINKS_BIN_DIR}" ]; then
+        log_error "Target directory is not writable: ${SYMLINKS_BIN_DIR}"
         exit 1
     fi
 
     shopt -s nullglob
-    files=("${source_dir}"/*.sh)
+    files=("${original_bin_dir}"/*.sh)
     shopt -u nullglob
 
     if [ ${#files[@]} -eq 0 ]; then
-        log_error "No .sh files found in ${source_dir}"
+        log_error "No .sh files found in ${original_bin_dir}"
         exit 1
     fi
 
@@ -314,12 +315,12 @@ setup_symbolic_links() {
 
         chmod "$mode" "$file"
 
-        link_path="${target_dir}/${command_file}"
+        link_path="${SYMLINKS_BIN_DIR}/${command_file}"
 
         ln -sf "${file}" "${link_path}"
     done
 
-    for file in "${source_dir}"/*; do
+    for file in "${original_bin_dir}"/*; do
         # Skip if it's a directory
         [[ -d "$file" ]] && continue
 
@@ -331,11 +332,11 @@ setup_symbolic_links() {
         ls -l "$file"
     done
 
-    ls -lL "${target_dir}"
+    ls -lL "${SYMLINKS_BIN_DIR}"
 
-    log_info "Symbolic links created in ${target_dir} for all .sh files in ${source_dir}"
+    log_info "Symbolic links created in ${SYMLINKS_BIN_DIR} for all .sh files in ${original_bin_dir}"
 
-    add_path_if_exists before "$HOME/.local/bin"
+    add_path_if_exists before "SYMLINKS_BIN_DIR"
 
     log_info "Done."
 
@@ -372,7 +373,7 @@ setup_symbolic_links
 
 if ! grep -q ".post_bashrc" "$HOME"/.bashrc; then
     echo "Appending .post_bashrc source block to .bashrc..."
-    cat <<'EOF' >> "$HOME/.bashrc"
+    cat <<'EOF' >>"$HOME/.bashrc"
 
 # ============================================================
 # User customisation block — added manually
@@ -395,7 +396,7 @@ cp "$GITHUB_PARENT/$GITHUB_SETUP_REPO/.bash_profile" "$HOME"
 
 log_info "✅ All GitHub repos processed and environment configured"
 log_info "🧩 Config files: ~/.bash_profile, ~/.post_bashrc"
-log_info "🔗 Symlinks created in: ~/.local/bin"
+log_info "🔗 Symlinks created in: $SYMLINKS_BIN_DIR"
 
 # Get the full path to the script
 SCRIPT_PATH="$(realpath "$0")"

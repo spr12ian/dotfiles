@@ -101,7 +101,7 @@ declare -A _RUN_LOCAL_SAFE_CACHE=()
 run_local() {
     local cmd="$1"
     shift
-    local local_cmd="$HOME/.local/bin/$cmd"
+    local local_cmd="$SYMLINKS_BIN_DIR/$cmd"
 
     # Check cache first
     if [[ "${_RUN_LOCAL_SAFE_CACHE[$cmd]-}" == "safe" ]]; then
@@ -114,7 +114,7 @@ run_local() {
 
     # First-time check
     if [ ! -x "$local_cmd" ]; then
-        echo "⚠️ Command '$cmd' not found or not executable in $HOME/.local/bin. Skipping." >&2
+        echo "⚠️ Command '$cmd' not found or not executable in $SYMLINKS_BIN_DIR. Skipping." >&2
         _RUN_LOCAL_SAFE_CACHE["$cmd"]="missing"
         return 0
     fi
@@ -122,7 +122,7 @@ run_local() {
     local resolved
     resolved="$(command -v "$cmd" 2>/dev/null || true)"
     if [ "$resolved" != "$local_cmd" ]; then
-        echo "⚠️ Command '$cmd' is not resolved to $HOME/.local/bin first in PATH (resolved to $resolved). Skipping." >&2
+        echo "⚠️ Command '$cmd' is not resolved to $SYMLINKS_BIN_DIR first in PATH (resolved to $resolved). Skipping." >&2
         _RUN_LOCAL_SAFE_CACHE["$cmd"]="wrong_path"
         return 0
     fi
@@ -308,7 +308,7 @@ remove_path "/usr/local/games"
 
 # before
 
-add_path_if_exists before "$HOME/.symlinks/bin"
+add_path_if_exists before "$SYMLINKS_BIN_DIR"
 
 #after
 
