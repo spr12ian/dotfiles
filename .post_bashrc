@@ -308,7 +308,7 @@ remove_path "/usr/local/games"
 
 # before
 
-add_path_if_exists before "$HOME/.local/bin"
+add_path_if_exists before "$HOME/.symlinks/bin"
 
 #after
 
