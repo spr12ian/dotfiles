@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 LOGFILE="/tmp/test_spy.log"
 
 {
