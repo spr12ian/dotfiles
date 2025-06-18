@@ -145,8 +145,6 @@ validate_dotfile_behavior() {
     "TEST_DOTFILE_NAME='bash_profile' bash --login -i" >> "${log_file}" 2>&1
   fi
 
-  echo "The log file can be found at ${log_file}"
-
   if grep -q "dotfile_test finished" "${log_file}"; then
     echo "✅ ${dotfile} finished!"
   else
