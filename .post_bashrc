@@ -291,6 +291,8 @@ else
     echo "⚠️ GITHUB_PARENT not set"
 fi
 
+SYMLINKS_BIN_DIR="$HOME/.symlinks/bin"
+
 set +a
 
 # ─────────────────────────────────────────────
