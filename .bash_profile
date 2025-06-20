@@ -22,7 +22,7 @@ if shopt -q login_shell; then
             declare -p TEST_DOTFILE_NAME &>/dev/null && echo "🚫 Skipping focus-here — VS Code userEnvProbe"
         else
             declare -p TEST_DOTFILE_NAME &>/dev/null && echo "✅ Running focus-here"
-            run_local focus-here
+            run_local focus_here
         fi
     fi
 fi

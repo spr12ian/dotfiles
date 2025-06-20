@@ -8,4 +8,5 @@ if [ ! -d /run/user/"${user_id}" ]; then
     eval "$(dbus-launch --sh-syntax)"
 fi
 
+# shellcheck disable=SC1091
 source "${HOME}"/.env
