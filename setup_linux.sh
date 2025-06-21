@@ -344,6 +344,32 @@ setup_symbolic_linksX() {
     log_block_finish
 }
 
+
+add_path_if_exists() {
+    local position="$1"
+    shift
+
+    local dir resolved # Declare function-local variables
+
+    for dir in "$@"; do
+        # Expand and validate directory
+        if [[ -z "$dir" || ! -d "$dir" ]]; then
+            return
+        fi
+        resolved=$(realpath -m "$dir" 2>/dev/null) || return
+
+        # Already in PATH?
+        [[ ":$PATH:" == *":$resolved:"* ]] && return
+
+        # Add to PATH
+        case "$position" in
+        before) PATH="$resolved:$PATH" ;;
+        after) PATH="$PATH:$resolved" ;;
+        *) echo "Invalid position: $position (use 'before' or 'after')" >&2 ;;
+        esac
+    done
+}
+
 link_home_dotfiles() {
     local original_dir="${GITHUB_DOTFILES_DIR:?GITHUB_DOTFILES_DIR not set}"
     local target_dir="$HOME"
@@ -470,6 +496,8 @@ check_required_variables
 focus_here
 
 setup_symbolic_links
+
+add_path_if_exists before "$SYMLINKS_BIN_DIR"
 
 # Check if .bashrc already has .post_bashrc
 
