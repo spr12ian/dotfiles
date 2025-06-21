@@ -493,8 +493,8 @@ fi
 EOF
 fi
 
-cp "$GITHUB_PARENT/$GITHUB_SETUP_REPO/.post_bashrc" "$HOME"
-cp "$GITHUB_PARENT/$GITHUB_SETUP_REPO/.bash_profile" "$HOME"
+#cp "$GITHUB_PARENT/$GITHUB_SETUP_REPO/.post_bashrc" "$HOME"
+#cp "$GITHUB_PARENT/$GITHUB_SETUP_REPO/.bash_profile" "$HOME"
 
 log_info "✅ All GitHub repos processed and environment configured"
 log_info "🧩 Config files: ~/.bash_profile, ~/.post_bashrc"
@@ -503,8 +503,7 @@ log_info "🔗 Symlinks created in: $SYMLINKS_BIN_DIR"
 # Get the full path to the script
 SCRIPT_PATH="$(realpath "$0")"
 
-log_info "So far, so good. Please delete this file:"
-echo rm -- "$SCRIPT_PATH"
+rm -- "$SCRIPT_PATH"
 
 # Print a message indicating the setup is complete
 log_info "Setup complete. Please restart your terminal."
