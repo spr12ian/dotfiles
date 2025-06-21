@@ -5,7 +5,7 @@ SYMLINKS_BIN_DIR="$HOME/.symlinks/bin"
 
 set_debug_log() {
     # Location of the debug log
-    DEBUG_LOG="${DEBUG_LOG:-/tmp/$(basename "$0").log}"
+    DEBUG_LOG="${DEBUG_LOG:-/tmp/$(basename -- "$0").log}"
     echo "The debug log file can be found at $DEBUG_LOG"
 }
 
@@ -306,7 +306,7 @@ setup_symbolic_linksX() {
             continue
         }
 
-        command_file=$(basename "${file}" .sh)
+        command_file=$(basename -- "${file}" .sh)
 
         if [[ "$command_file" == source-* ]]; then
             mode=600
