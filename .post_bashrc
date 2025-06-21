@@ -9,59 +9,84 @@ if [[ $- != *i* ]]; then
 fi
 
 # ─────────────────────────────────────────────
-# Utility functions
+# Environment variables
 # ─────────────────────────────────────────────
+set_post_bashrc_environment() {
+    set -a
 
-about() {
-    clear
+    local env_file="$HOME/.env"
 
-    local args=()
-
-    if [ $# -eq 0 ]; then
-        echo -n "What commands are you asking about?> "
-        read -r input
-        read -ra args <<<"$input" # Split input into array
+    # shellcheck source=/dev/null
+    if [ -f "$env_file" ]; then
+        source "$env_file"
     else
-        args=("$@")
+        echo "Missing .env file"
+        return 1
     fi
 
-    echo "command (builtin)    - prints a description for the command"
-    echo "type (builtin)       - indicate how it would be interpreted if used as a command name"
-    whatis whatis || true
-    whatis which || true
-    echo
+    NVM_DIR="$HOME/.nvm"
 
-    for cmd in "${args[@]}"; do
-        if ! command_exists "$cmd" >/dev/null 2>&1; then
-            command_exists_debug "$cmd"
-            continue
+    IS_WSL=false
+    if grep -qi microsoft /proc/version; then
+        IS_WSL=true
+    fi
+
+    if [ "$IS_WSL" = true ]; then
+        if command -v cmd.exe >/dev/null 2>&1; then
+            WINDOWS_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r')
+        else
+            WINDOWS_USER=""
         fi
-        echo "🔍 Command: $cmd"
+        VSCODE_SETTINGS_DIR="/mnt/c/Users/$WINDOWS_USER/AppData/Roaming/Code/User"
+    else
+        VSCODE_SETTINGS_DIR="$HOME/.config/Code/User"
+    fi
 
-        echo -n "📄 type:    "
-        type_result=$(type -t "$cmd" || true)
-        type -t "$cmd" || echo "Not found"
+    # ignore unused variable
+    # shellcheck disable=SC2034
+    VSCODE_SETTINGS_FILE="$VSCODE_SETTINGS_DIR/settings.json"
 
-        echo -n "❓ whatis:  "
-        if ! whatis "$cmd" 2>/dev/null; then
-            echo "No man page info found"
-        fi
+    if declare -p GITHUB_PARENT &>/dev/null; then
+        VSCODE_WORKSPACE_DIR="$GITHUB_PARENT/my-vs-code/workspaces"
+        # shellcheck disable=SC2034
+        GITHUB_DOTFILES_DIR="$GITHUB_PARENT/dotfiles/"
+    else
+        echo "⚠️ GITHUB_PARENT not set"
+    fi
 
-        echo -n "📍 which:   "
-        which "$cmd"
+    SYMLINKS_BIN_DIR="$HOME/.symlinks/bin"
 
-        echo -n "📦 whereis: "
-        whereis "$cmd"
-
-        echo "────────────────────────────────────────────────────────────────────"
-    done
+    set +a
 }
+
+if declare -F set_post_bashrc_environment >/dev/null; then
+  if ! set_post_bashrc_environment; then
+    echo "❌ Environment setup failed"
+    return 1
+  fi
+else
+  echo "⚠️  set_post_bashrc_environment is not defined"
+  return 1
+fi
+
+
+# shellcheck disable=SC1091
+#source "$SYMLINKS_SOURCE_DIR/bash_functions"
+if [[ -n "${GITHUB_PARENT:-}" ]]; then
+    source "$GITHUB_PARENT/bin/source/bash_functions.sh"
+else
+    echo "⚠️ GITHUB_PARENT not set – skipping bash_functions.sh"
+fi
+
+# ─────────────────────────────────────────────
+# Utility functions
+# ─────────────────────────────────────────────
 
 add_path_if_exists() {
     local position="$1"
     shift
 
-    local dir resolved  # Declare function-local variables
+    local dir resolved # Declare function-local variables
 
     for dir in "$@"; do
         # Expand and validate directory
@@ -75,9 +100,9 @@ add_path_if_exists() {
 
         # Add to PATH
         case "$position" in
-            before) PATH="$resolved:$PATH" ;;
-            after)  PATH="$PATH:$resolved" ;;
-            *) echo "Invalid position: $position (use 'before' or 'after')" >&2 ;;
+        before) PATH="$resolved:$PATH" ;;
+        after) PATH="$PATH:$resolved" ;;
+        *) echo "Invalid position: $position (use 'before' or 'after')" >&2 ;;
         esac
     done
 }
@@ -91,164 +116,17 @@ __COMMAND_UTILS_LOADED=1
 
 # Optional debug logging
 _log_debug() {
-  [[ "${DEBUG:-}" =~ ^(1|true|TRUE)$ ]] && echo "DEBUG: $*" >&2
+    [[ "${DEBUG:-}" =~ ^(1|true|TRUE)$ ]] && echo "DEBUG: $*" >&2
 }
-
-# Return the command type: alias, function, builtin, keyword, or file
-command_type() {
-  local cmd="$1"
-  local kind
-
-  kind=$(type -t "$cmd" 2>/dev/null || true)
-
-  if [[ -z "$kind" ]]; then
-    echo "unknown"
-    return 1
-  fi
-
-  echo "$kind"
-  return 0
-}
-
-# Check if a command exists and is usable
-command_exists() {
-  local cmd="$1"
-  local resolved kind
-
-  _log_debug "Checking command: $cmd"
-
-  if ! resolved=$(command -v "$cmd" 2>/dev/null); then
-    _log_debug "Not found in PATH"
-    return 1
-  fi
-
-  kind=$(command_type "$cmd")
-
-  _log_debug "Type: $kind, Resolved: $resolved"
-
-  if [[ "$kind" != "file" && "$kind" != "unknown" ]]; then
-    return 0  # shell builtin, alias, function, etc.
-  fi
-
-  if [[ "$kind" == "file" && -x "$resolved" ]]; then
-    return 0  # executable file
-  fi
-
-  return 1  # Found but not usable
-}
-
-command_exists_debug() {
-  local cmd="$1"
-  local resolved kind real_target
-
-  # Try to resolve via PATH
-  if ! resolved=$(command -v "$cmd" 2>/dev/null); then
-    echo "❌ Command '$cmd' not found in PATH"
-    return 1
-  fi
-
-  # Determine the type
-  kind=$(type -t "$cmd" 2>/dev/null || true)
-  echo "✅ Found: $cmd"
-  echo "   Type: ${kind:-unknown}"
-  echo "   Resolved path: $resolved"
-
-  # If it's a regular file, verify it's executable
-  if [[ "$kind" == "file" ]]; then
-    if [ ! -x "$resolved" ]; then
-      echo "⚠️  Not executable: $resolved"
-      return 1
-    fi
-
-    # Detect and resolve symlink
-    if [ -L "$resolved" ]; then
-      real_target=$(readlink -f "$resolved" 2>/dev/null || realpath "$resolved" 2>/dev/null || echo "Unable to resolve")
-      echo "   🔗 Symlink target: $real_target"
-    fi
-  fi
-
-  return 0
-}
-
-
-link_scripts_in_dir() {
-    local original_dir="$1"
-    local target_dir="$2"
-    local chmod_mode="$3"
-
-    mkdir -p "${target_dir}"
-
-    if [ ! -d "${original_dir}" ]; then
-        echo "❌ Original directory does not exist: ${original_dir}"
-        return 1
-    fi
-
-    if [ ! -w "${target_dir}" ]; then
-        echo "❌ Target directory is not writable: ${target_dir}"
-        return 1
-    fi
-
-    shopt -s nullglob
-    local files=("${original_dir}"/*.sh)
-    shopt -u nullglob
-
-    if [ ${#files[@]} -eq 0 ]; then
-        echo "ℹ️  No .sh files found in ${original_dir}"
-        return 0
-    fi
-
-    for file in "${files[@]}"; do
-        [[ -f "$file" ]] || {
-            echo "⚠️  Not a regular file: $file"
-            continue
-        }
-
-        grep -q '^#!' "$file" || {
-            echo "⚠️  Missing shebang: $file"
-            continue
-        }
-
-        local command_file
-        command_file=$(basename -- "${file}" .sh)
-
-        chmod "${chmod_mode}" "$file"
-        ln -sf "${file}" "${target_dir}/${command_file}"
-    done
-
-    for file in "${original_dir}"/*; do
-        [[ -d "$file" || "$file" == *.sh ]] && continue
-        ls -l "$file"
-    done
-
-    ls -lL "${target_dir}"
-    echo "✅ Symbolic links created in ${target_dir} for all .sh files in ${original_dir}"
-}
-
-# Resolve symlinks to get the actual file path
-resolve_command_path() {
-  local cmd="$1"
-
-  if ! command_exists "$cmd"; then
-    echo "❌ '$cmd' not found or not executable" >&2
-    return 1
-  fi
-
-  local resolved
-  resolved=$(command -v "$cmd")
-
-  if [ -L "$resolved" ]; then
-    resolved=$(readlink -f "$resolved" 2>/dev/null || realpath "$resolved" 2>/dev/null || echo "$resolved")
-  fi
-
-  echo "$resolved"
-}
-
 
 finish_dotfile_test() {
     local name="$1"
-    local sources=("${BASH_SOURCE[@]:1}")  # Skip this function itself
+    local sources=("${BASH_SOURCE[@]:1}") # Skip this function itself
     echo -e "finish_dotfile_test started at: $(date)"
-    (IFS=' '; echo "This script           : ${sources[0]}")
+    (
+        IFS=' '
+        echo "This script           : ${sources[0]}"
+    )
     echo -e "\$name=$name"
     echo -e "\$TEST_DOTFILE_NAME=$TEST_DOTFILE_NAME"
     echo -e "finish_dotfile_test finished at: $(date)"
@@ -279,27 +157,29 @@ is_user_env_probe() {
 # Lazy-load nvm (significant speed improvement)
 nvm() {
     unset -f nvm
+    # shellcheck disable=SC1091
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    # shellcheck disable=SC1091
     [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
     nvm "$@"
 }
 
 print_path() {
-  local i=1
-  echo "🔍 Current \$PATH entries:"
-  echo "$PATH" | tr ':' '\n' | while read -r dir; do
-    if [ -d "$dir" ]; then
-      printf "%2d. ✅ %s\n" "$i" "$dir"
-    else
-      printf "%2d. ❌ %s (not a directory)\n" "$i" "$dir"
-    fi
-    i=$((i + 1))
-  done
+    local i=1
+    echo "🔍 Current \$PATH entries:"
+    echo "$PATH" | tr ':' '\n' | while read -r dir; do
+        if [ -d "$dir" ]; then
+            printf "%2d. ✅ %s\n" "$i" "$dir"
+        else
+            printf "%2d. ❌ %s (not a directory)\n" "$i" "$dir"
+        fi
+        i=$((i + 1))
+    done
 }
 
 remove_path() {
-  local remove="$1"
-  PATH=$(echo "$PATH" | tr ':' '\n' | grep -v -x "$remove" | paste -sd:)
+    local remove="$1"
+    PATH=$(echo "$PATH" | tr ':' '\n' | grep -v -x "$remove" | paste -sd:)
 }
 
 # Map of verified safe local commands
@@ -347,11 +227,14 @@ start_dotfile_test() {
 
     echo -e "\$TEST_DOTFILE_NAME=$TEST_DOTFILE_NAME"
 
-    local sources=("${BASH_SOURCE[@]:1}")  # Skip this function itself
+    local sources=("${BASH_SOURCE[@]:1}") # Skip this function itself
 
     echo "Shell type           : $0"
     echo "Bash version         : $BASH_VERSION"
-    (IFS=' '; echo "Call stack           : ${sources[*]}")
+    (
+        IFS=' '
+        echo "Call stack           : ${sources[*]}"
+    )
     echo "Current options (\$-): $-"
 
     echo -n "Is interactive?      : [[ \$- == *i* ]] → "
@@ -366,7 +249,6 @@ start_dotfile_test() {
     echo "TERM_PROGRAM         : ${TERM_PROGRAM:-}"
     echo "Host                 : $(hostname -f 2>/dev/null || hostname)"
     echo "Shell PID            : $$"
-
 
     # More portable parent process command
     local parent_pid parent_cmd
@@ -463,46 +345,6 @@ _vcode_autocomplete() {
 }
 
 # ─────────────────────────────────────────────
-# Environment variables
-# ─────────────────────────────────────────────
-
-set -a
-
-NVM_DIR="$HOME/.nvm"
-
-IS_WSL=false
-if grep -qi microsoft /proc/version; then
-    IS_WSL=true
-fi
-
-if [ "$IS_WSL" = true ]; then
-    if command -v cmd.exe >/dev/null 2>&1; then
-        WINDOWS_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r')
-    else
-        WINDOWS_USER=""
-    fi
-    VSCODE_SETTINGS_DIR="/mnt/c/Users/$WINDOWS_USER/AppData/Roaming/Code/User"
-else
-    VSCODE_SETTINGS_DIR="$HOME/.config/Code/User"
-fi
-
-# ignore unused variable
-# shellcheck disable=SC2034
-VSCODE_SETTINGS_FILE="$VSCODE_SETTINGS_DIR/settings.json"
-
-source_if_exists "$HOME/.env"
-
-if declare -p GITHUB_PARENT &>/dev/null; then
-    VSCODE_WORKSPACE_DIR="$GITHUB_PARENT/my-vs-code/workspaces"
-else
-    echo "⚠️ GITHUB_PARENT not set"
-fi
-
-SYMLINKS_BIN_DIR="$HOME/.symlinks/bin"
-
-set +a
-
-# ─────────────────────────────────────────────
 # Completions
 # ─────────────────────────────────────────────
 
@@ -526,8 +368,6 @@ add_path_if_exists after \
     "/mnt/c/Program Files/Microsoft VS Code/bin" \
     "/usr/local/go/bin" \
     "$HOME/go/bin"
-
-
 
 # ─────────────────────────────────────────────
 # Aliases
@@ -568,5 +408,3 @@ declare -p TEST_DOTFILE_NAME &>/dev/null && start_dotfile_test && finish_dotfile
 #   $ !ls            → Repeats last command starting with 'ls'
 
 # ──────────────────────────────────────────────────────────────
-
-
