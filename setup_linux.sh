@@ -346,9 +346,7 @@ setup_symbolic_linksX() {
 
 link_home_dotfiles() {
     local original_dir="${GITHUB_DOTFILES_DIR:?GITHUB_DOTFILES_DIR not set}"
-    echo "original_dir: $original_dir"
     local target_dir="$HOME"
-    echo "target_dir: $target_dir"
     local chmod_mode=600
 
     if [ "$#" -eq 0 ]; then
@@ -367,11 +365,8 @@ link_home_dotfiles() {
     fi
 
     for filename in "$@"; do
-        echo "filename: $filename"
         local src_file="$original_dir/$filename"
-        echo "src_file: $src_file"
         local dest_file="$target_dir/.$filename"
-        echo "dest_file: $dest_file"
 
         if [ ! -f "$src_file" ]; then
             echo "⚠️  File not found: $src_file"
