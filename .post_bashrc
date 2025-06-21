@@ -12,6 +12,51 @@ fi
 # Utility functions
 # ─────────────────────────────────────────────
 
+about() {
+    clear
+
+    local args=()
+
+    if [ $# -eq 0 ]; then
+        echo -n "What commands are you asking about?> "
+        read -r input
+        read -ra args <<<"$input" # Split input into array
+    else
+        args=("$@")
+    fi
+
+    echo "command (builtin)    - prints a description for the command"
+    echo "type (builtin)       - indicate how it would be interpreted if used as a command name"
+    whatis whatis || true
+    whatis which || true
+    echo
+
+    for cmd in "${args[@]}"; do
+        if ! command_exists "$cmd" >/dev/null 2>&1; then
+            command_exists_debug "$cmd"
+            continue
+        fi
+        echo "🔍 Command: $cmd"
+
+        echo -n "📄 type:    "
+        type_result=$(type -t "$cmd" || true)
+        type -t "$cmd" || echo "Not found"
+
+        echo -n "❓ whatis:  "
+        if ! whatis "$cmd" 2>/dev/null; then
+            echo "No man page info found"
+        fi
+
+        echo -n "📍 which:   "
+        which "$cmd"
+
+        echo -n "📦 whereis: "
+        whereis "$cmd"
+
+        echo "────────────────────────────────────────────────────────────────────"
+    done
+}
+
 add_path_if_exists() {
     local position="$1"
     shift
@@ -36,6 +81,168 @@ add_path_if_exists() {
         esac
     done
 }
+
+#!/usr/bin/env bash
+# command_utils.sh — Bash module for command checks and path resolution
+
+# Prevent double-sourcing
+if [[ -n "${__COMMAND_UTILS_LOADED:-}" ]]; then return 0; fi
+__COMMAND_UTILS_LOADED=1
+
+# Optional debug logging
+_log_debug() {
+  [[ "${DEBUG:-}" =~ ^(1|true|TRUE)$ ]] && echo "DEBUG: $*" >&2
+}
+
+# Return the command type: alias, function, builtin, keyword, or file
+command_type() {
+  local cmd="$1"
+  local kind
+
+  kind=$(type -t "$cmd" 2>/dev/null || true)
+
+  if [[ -z "$kind" ]]; then
+    echo "unknown"
+    return 1
+  fi
+
+  echo "$kind"
+  return 0
+}
+
+# Check if a command exists and is usable
+command_exists() {
+  local cmd="$1"
+  local resolved kind
+
+  _log_debug "Checking command: $cmd"
+
+  if ! resolved=$(command -v "$cmd" 2>/dev/null); then
+    _log_debug "Not found in PATH"
+    return 1
+  fi
+
+  kind=$(command_type "$cmd")
+
+  _log_debug "Type: $kind, Resolved: $resolved"
+
+  if [[ "$kind" != "file" && "$kind" != "unknown" ]]; then
+    return 0  # shell builtin, alias, function, etc.
+  fi
+
+  if [[ "$kind" == "file" && -x "$resolved" ]]; then
+    return 0  # executable file
+  fi
+
+  return 1  # Found but not usable
+}
+
+command_exists_debug() {
+  local cmd="$1"
+  local resolved kind real_target
+
+  # Try to resolve via PATH
+  if ! resolved=$(command -v "$cmd" 2>/dev/null); then
+    echo "❌ Command '$cmd' not found in PATH"
+    return 1
+  fi
+
+  # Determine the type
+  kind=$(type -t "$cmd" 2>/dev/null || true)
+  echo "✅ Found: $cmd"
+  echo "   Type: ${kind:-unknown}"
+  echo "   Resolved path: $resolved"
+
+  # If it's a regular file, verify it's executable
+  if [[ "$kind" == "file" ]]; then
+    if [ ! -x "$resolved" ]; then
+      echo "⚠️  Not executable: $resolved"
+      return 1
+    fi
+
+    # Detect and resolve symlink
+    if [ -L "$resolved" ]; then
+      real_target=$(readlink -f "$resolved" 2>/dev/null || realpath "$resolved" 2>/dev/null || echo "Unable to resolve")
+      echo "   🔗 Symlink target: $real_target"
+    fi
+  fi
+
+  return 0
+}
+
+
+link_scripts_in_dir() {
+    local original_dir="$1"
+    local target_dir="$2"
+    local chmod_mode="$3"
+
+    mkdir -p "${target_dir}"
+
+    if [ ! -d "${original_dir}" ]; then
+        echo "❌ Original directory does not exist: ${original_dir}"
+        return 1
+    fi
+
+    if [ ! -w "${target_dir}" ]; then
+        echo "❌ Target directory is not writable: ${target_dir}"
+        return 1
+    fi
+
+    shopt -s nullglob
+    local files=("${original_dir}"/*.sh)
+    shopt -u nullglob
+
+    if [ ${#files[@]} -eq 0 ]; then
+        echo "ℹ️  No .sh files found in ${original_dir}"
+        return 0
+    fi
+
+    for file in "${files[@]}"; do
+        [[ -f "$file" ]] || {
+            echo "⚠️  Not a regular file: $file"
+            continue
+        }
+
+        grep -q '^#!' "$file" || {
+            echo "⚠️  Missing shebang: $file"
+            continue
+        }
+
+        local command_file
+        command_file=$(basename -- "${file}" .sh)
+
+        chmod "${chmod_mode}" "$file"
+        ln -sf "${file}" "${target_dir}/${command_file}"
+    done
+
+    for file in "${original_dir}"/*; do
+        [[ -d "$file" || "$file" == *.sh ]] && continue
+        ls -l "$file"
+    done
+
+    ls -lL "${target_dir}"
+    echo "✅ Symbolic links created in ${target_dir} for all .sh files in ${original_dir}"
+}
+
+# Resolve symlinks to get the actual file path
+resolve_command_path() {
+  local cmd="$1"
+
+  if ! command_exists "$cmd"; then
+    echo "❌ '$cmd' not found or not executable" >&2
+    return 1
+  fi
+
+  local resolved
+  resolved=$(command -v "$cmd")
+
+  if [ -L "$resolved" ]; then
+    resolved=$(readlink -f "$resolved" 2>/dev/null || realpath "$resolved" 2>/dev/null || echo "$resolved")
+  fi
+
+  echo "$resolved"
+}
+
 
 finish_dotfile_test() {
     local name="$1"
