@@ -266,7 +266,7 @@ setup_github() {
     log_block_finish
 }
 
-setup_symbolic_links() {
+setup_symbolic_linksX() {
     log_block_start
 
     original_bin_dir="${GITHUB_PARENT}/bin"
@@ -342,6 +342,107 @@ setup_symbolic_links() {
     log_info "Done."
 
     log_block_finish
+}
+
+link_home_dotfiles() {
+  local original_dir="${GITHUB_DOTFILES_DIR:?GITHUB_DOTFILES_DIR not set}"
+  local target_dir="$HOME"
+  local chmod_mode=600
+
+  if [ "$#" -eq 0 ]; then
+    echo "ℹ️  No dotfiles passed in"
+    return 0
+  fi
+
+  if [ ! -d "$original_dir" ]; then
+    echo "❌ Original directory does not exist: $original_dir"
+    return 1
+  fi
+
+  if [ ! -w "$target_dir" ]; then
+    echo "❌ Target directory is not writable: $target_dir"
+    return 1
+  fi
+
+  for filename in "$@"; do
+    local src_file="$original_dir/$filename"
+    local dest_file="$target_dir/.$filename"
+
+    if [ ! -f "$src_file" ]; then
+      echo "⚠️  File not found: $src_file"
+      continue
+    fi
+
+    chmod "$chmod_mode" "$src_file"
+    ln -sf "$src_file" "$dest_file"
+    echo "🔗 Linked $src_file → $dest_file"
+  done
+
+  echo "✅ Dotfiles linked into $target_dir"
+}
+
+link_scripts_in_dir() {
+  local original_dir="$1"
+  local target_dir="$2"
+  local chmod_mode="$3"
+
+  mkdir -p "${target_dir}"
+
+  if [ ! -d "${original_dir}" ]; then
+    echo "❌ Original directory does not exist: ${original_dir}"
+    return 1
+  fi
+
+  if [ ! -w "${target_dir}" ]; then
+    echo "❌ Target directory is not writable: ${target_dir}"
+    return 1
+  fi
+
+  shopt -s nullglob
+  local files=("${original_dir}"/*.sh)
+  shopt -u nullglob
+
+  if [ ${#files[@]} -eq 0 ]; then
+    echo "ℹ️  No .sh files found in ${original_dir}"
+    return 0
+  fi
+
+  for file in "${files[@]}"; do
+    [[ -f "$file" ]] || {
+      echo "⚠️  Not a regular file: $file"
+      continue
+    }
+
+    grep -q '^#!' "$file" || {
+      echo "⚠️  Missing shebang: $file"
+      continue
+    }
+
+    local command_file
+    command_file=$(basename -- "${file}" .sh)
+
+    chmod "${chmod_mode}" "$file"
+    ln -sf "${file}" "${target_dir}/${command_file}"
+  done
+
+  for file in "${original_dir}"/*; do
+    [[ -d "$file" || "$file" == *.sh ]] && continue
+    ls -l "$file"
+  done
+
+  ls -lL "${target_dir}"
+  echo "✅ Symbolic links created in ${target_dir} for all .sh files in ${original_dir}"
+}
+
+setup_symbolic_links() {
+  local project_dir="${GITHUB_PARENT:-$HOME}/bin"
+  local symlinks_dir="$HOME/.symlinks"
+
+  link_scripts_in_dir "${project_dir}" "$symlinks_dir/bin" 700
+  link_scripts_in_dir "${project_dir}/source" "$symlinks_dir/source" 600
+
+  dot_files=(bash_profile bashrc post_bashrc)
+  link_home_dotfiles "${dot_files[@]}"
 }
 
 update_linux() {
