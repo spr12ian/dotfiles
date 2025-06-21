@@ -98,6 +98,7 @@ main() {
   validate_bash_profile_behavior
 
   echo "Now try: ssh -i $HOME/.ssh/id_ed25519_${TEST_USER} ${TEST_USER}@localhost"
+  alias testlogin
 }
 
 ssh_server_is_running() {

@@ -530,7 +530,7 @@ log_info "🔗 Symlinks created in: $SYMLINKS_BIN_DIR"
 
 # Get the full path to the script
 SCRIPT_PATH="$(realpath "$0")"
-
+log_info "Trying to remove $SCRIPT_PATH"
 rm -- "$SCRIPT_PATH"
 
 # Print a message indicating the setup is complete
