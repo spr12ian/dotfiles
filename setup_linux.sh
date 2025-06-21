@@ -529,6 +529,7 @@ log_info "🧩 Config files: ~/.bash_profile, ~/.post_bashrc"
 log_info "🔗 Symlinks created in: $SYMLINKS_BIN_DIR"
 
 # Get the full path to the script
+log_info "\$0: $0"
 SCRIPT_PATH="$(realpath "$0")"
 log_info "Trying to remove $SCRIPT_PATH"
 rm -- "$SCRIPT_PATH"
