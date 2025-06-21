@@ -49,7 +49,7 @@ set_post_bashrc_environment() {
     if declare -p GITHUB_PARENT &>/dev/null; then
         VSCODE_WORKSPACE_DIR="$GITHUB_PARENT/my-vs-code/workspaces"
         # shellcheck disable=SC2034
-        GITHUB_DOTFILES_DIR="$GITHUB_PARENT/dotfiles/"
+        GITHUB_DOTFILES_DIR="$GITHUB_PARENT/dotfiles"
     else
         echo "⚠️ GITHUB_PARENT not set"
     fi
