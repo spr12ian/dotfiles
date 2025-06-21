@@ -6,7 +6,7 @@ if [ -f "$HOME/.bashrc" ]; then
     source "$HOME/.bashrc"
 else
     echo ".bashrc not found in $HOME." >&2
-    exit 1
+    return 1
 fi
 
 # ─────────────────────────────────────────────

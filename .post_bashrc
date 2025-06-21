@@ -60,23 +60,33 @@ set_post_bashrc_environment() {
 }
 
 if declare -F set_post_bashrc_environment >/dev/null; then
-  if ! set_post_bashrc_environment; then
-    echo "❌ Environment setup failed"
+    if ! set_post_bashrc_environment; then
+        echo "❌ Environment setup failed"
+        return 1
+    fi
+else
+    echo "⚠️  set_post_bashrc_environment is not defined"
     return 1
-  fi
-else
-  echo "⚠️  set_post_bashrc_environment is not defined"
-  return 1
 fi
 
+source_bash_functions() {
+    # shellcheck disable=SC1091
+    #source "$SYMLINKS_SOURCE_DIR/bash_functions"
+    if [[ -n "${GITHUB_PARENT:-}" ]]; then
+        local bf_file="$GITHUB_PARENT/bin/source/bash_functions.sh"
 
-# shellcheck disable=SC1091
-#source "$SYMLINKS_SOURCE_DIR/bash_functions"
-if [[ -n "${GITHUB_PARENT:-}" ]]; then
-    source "$GITHUB_PARENT/bin/source/bash_functions.sh"
-else
-    echo "⚠️ GITHUB_PARENT not set – skipping bash_functions.sh"
-fi
+        # shellcheck source=/dev/null
+        if [ -f "$bf_file" ]; then
+            source "$bf_file"
+        else
+            echo "⚠️ Missing file: $bf_file"
+            return 1
+        fi
+    else
+        echo "⚠️ GITHUB_PARENT not set – skipping bash_functions.sh"
+    fi
+}
+source_bash_functions
 
 # ─────────────────────────────────────────────
 # Utility functions
