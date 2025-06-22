@@ -1,13 +1,5 @@
 #!/usr/bin/env bash
 
-# -----------------------------------------------------------
-# Shell strict mode for scripts — do not apply to interactive shells
-# -----------------------------------------------------------
-if [[ $- != *i* ]]; then
-    # We are in a non-interactive shell (likely a script)
-    set -euo pipefail
-fi
-
 # ─────────────────────────────────────────────
 # Environment variables
 # ─────────────────────────────────────────────
