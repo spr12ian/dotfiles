@@ -377,6 +377,7 @@ add_path_if_exists after \
 
 if [[ $- == *i* ]]; then
     # We are in an interactive shell
+    alias test_bash_functions='source "$HOME/.symlinks/source/test_bash_functions" &>/tmp/test_bash_functions.log'
     alias testlogin='ssh -i ~/.ssh/id_ed25519_testuser testuser@localhost'
 fi
 
