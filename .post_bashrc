@@ -142,11 +142,6 @@ nvm() {
     nvm "$@"
 }
 
-remove_path() {
-    local remove="$1"
-    PATH=$(echo "$PATH" | tr ':' '\n' | grep -v -x "$remove" | paste -sd:)
-}
-
 # Map of verified safe local commands
 declare -A _RUN_LOCAL_SAFE_CACHE=()
 
