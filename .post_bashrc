@@ -227,14 +227,6 @@ start_dotfile_test() {
     echo -e "\n--- start_dotfile_test finished at: $(date)\n"
 }
 
-source_if_exists() {
-    local file="$1"
-    if [ -f "$file" ]; then
-        # shellcheck source=/dev/null
-        source "$file"
-    fi
-}
-
 _vcode_autocomplete() {
     local cur="${COMP_WORDS[COMP_CWORD]}"
     local project_dir="$HOME/projects"
