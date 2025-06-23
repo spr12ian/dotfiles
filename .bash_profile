@@ -28,3 +28,6 @@ if shopt -q login_shell; then
 fi
 
 declare -p TEST_DOTFILE_NAME &>/dev/null && finish_dotfile_test bash_profile
+
+# Created by `pipx` on 2025-06-23 09:40:06
+export PATH="$PATH:/home/probity/.local/bin"

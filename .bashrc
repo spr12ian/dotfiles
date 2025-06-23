@@ -128,3 +128,6 @@ fi
 # ============================================================
 # End of user customisation block
 # ============================================================
+
+# Created by `pipx` on 2025-06-23 09:40:06
+export PATH="$PATH:/home/probity/.local/bin"
