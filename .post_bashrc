@@ -105,8 +105,6 @@ finish_dotfile_test() {
     fi
 }
 
-
-
 # Lazy-load nvm (significant speed improvement)
 nvm() {
     unset -f nvm
@@ -200,18 +198,6 @@ start_dotfile_test() {
     echo -e "\n--- Functions ---"
     compgen -A function
     echo -e "\n--- start_dotfile_test finished at: $(date)\n"
-}
-
-_vcode_autocomplete() {
-    local cur="${COMP_WORDS[COMP_CWORD]}"
-    local project_dir="$HOME/projects"
-    local projects
-
-    # Only complete if not using --all
-    if [[ "$COMP_CWORD" -ge 1 && "${COMP_WORDS[1]}" != --all ]]; then
-        projects=$(find "$project_dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null)
-        readarray -t COMPREPLY < <(compgen -W "$projects" -- "$cur")
-    fi
 }
 
 # ─────────────────────────────────────────────
