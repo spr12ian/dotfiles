@@ -142,19 +142,6 @@ nvm() {
     nvm "$@"
 }
 
-print_path() {
-    local i=1
-    echo "🔍 Current \$PATH entries:"
-    echo "$PATH" | tr ':' '\n' | while read -r dir; do
-        if [ -d "$dir" ]; then
-            printf "%2d. ✅ %s\n" "$i" "$dir"
-        else
-            printf "%2d. ❌ %s (not a directory)\n" "$i" "$dir"
-        fi
-        i=$((i + 1))
-    done
-}
-
 remove_path() {
     local remove="$1"
     PATH=$(echo "$PATH" | tr ':' '\n' | grep -v -x "$remove" | paste -sd:)
