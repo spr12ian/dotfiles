@@ -39,6 +39,7 @@ set_post_bashrc_environment() {
     VSCODE_SETTINGS_FILE="$VSCODE_SETTINGS_DIR/settings.json"
 
     if declare -p GITHUB_PARENT &>/dev/null; then
+        # shellcheck disable=SC2034
         VSCODE_WORKSPACE_DIR="$GITHUB_PARENT/my-vs-code/workspaces"
         # shellcheck disable=SC2034
         GITHUB_DOTFILES_DIR="$GITHUB_PARENT/dotfiles"
@@ -83,31 +84,6 @@ source_bash_functions
 # ─────────────────────────────────────────────
 # Utility functions
 # ─────────────────────────────────────────────
-
-add_path_if_exists() {
-    local position="$1"
-    shift
-
-    local dir resolved # Declare function-local variables
-
-    for dir in "$@"; do
-        # Expand and validate directory
-        if [[ -z "$dir" || ! -d "$dir" ]]; then
-            return
-        fi
-        resolved=$(realpath -m "$dir" 2>/dev/null) || return
-
-        # Already in PATH?
-        [[ ":$PATH:" == *":$resolved:"* ]] && return
-
-        # Add to PATH
-        case "$position" in
-        before) PATH="$resolved:$PATH" ;;
-        after) PATH="$PATH:$resolved" ;;
-        *) echo "Invalid position: $position (use 'before' or 'after')" >&2 ;;
-        esac
-    done
-}
 
 #!/usr/bin/env bash
 # command_utils.sh — Bash module for command checks and path resolution
