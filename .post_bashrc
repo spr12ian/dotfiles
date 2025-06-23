@@ -47,7 +47,9 @@ set_post_bashrc_environment() {
         echo "⚠️ GITHUB_PARENT not set"
     fi
 
-    SYMLINKS_BIN_DIR="$HOME/.symlinks/bin"
+    local symlinks_dir="$HOME/.symlinks"
+    SYMLINKS_BIN_DIR="$symlinks_dir/bin"
+    SYMLINKS_SOURCE_DIR="$symlinks_dir/source"
 
     set +a
 }
@@ -63,20 +65,17 @@ else
 fi
 
 source_bash_functions() {
-    # shellcheck disable=SC1091
-    #source "$SYMLINKS_SOURCE_DIR/bash_functions"
-    if [[ -n "${GITHUB_PARENT:-}" ]]; then
-        local bf_file="$GITHUB_PARENT/bin/source/bash_functions.sh"
+    if [[ -n "${SYMLINKS_SOURCE_DIR:-}" ]]; then
+        local bf_file="$SYMLINKS_SOURCE_DIR/bash_functions"
 
-        # shellcheck source=/dev/null
         if [ -f "$bf_file" ]; then
+            # shellcheck source=/dev/null
             source "$bf_file"
         else
             echo "⚠️ Missing file: $bf_file"
-            return 1
         fi
     else
-        echo "⚠️ GITHUB_PARENT not set – skipping bash_functions.sh"
+        echo "⚠️ SYMLINKS_SOURCE_DIR not set – skipping bash_functions"
     fi
 }
 source_bash_functions
