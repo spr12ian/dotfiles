@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# Prevent double-sourcing
+if [[ -n "${__POST_BASHRC_LOADED:-}" ]]; then return 0; fi
+__POST_BASHRC_LOADED=1
+
 # ─────────────────────────────────────────────
 # Environment variables
 # ─────────────────────────────────────────────
@@ -84,18 +88,6 @@ source_bash_functions
 # Utility functions
 # ─────────────────────────────────────────────
 
-#!/usr/bin/env bash
-# command_utils.sh — Bash module for command checks and path resolution
-
-# Prevent double-sourcing
-if [[ -n "${__COMMAND_UTILS_LOADED:-}" ]]; then return 0; fi
-__COMMAND_UTILS_LOADED=1
-
-# Optional debug logging
-_log_debug() {
-    [[ "${DEBUG:-}" =~ ^(1|true|TRUE)$ ]] && echo "DEBUG: $*" >&2
-}
-
 finish_dotfile_test() {
     local name="$1"
     local sources=("${BASH_SOURCE[@]:1}") # Skip this function itself
@@ -113,23 +105,7 @@ finish_dotfile_test() {
     fi
 }
 
-# Detect if we're being run as part of VS Code's userEnvProbe
-is_user_env_probe() {
-    ps -eo pid,ppid,args | awk '
-        NR > 1 {
-            pid[$1] = $2
-            cmd[$1] = substr($0, index($0,$3))
-        }
-        END {
-            p = ENVIRON["PPID"]
-            while (p > 1) {
-                if (cmd[p] ~ /userEnvProbe/) exit 0
-                p = pid[p]
-            }
-            exit 1
-        }
-    '
-}
+
 
 # Lazy-load nvm (significant speed improvement)
 nvm() {
