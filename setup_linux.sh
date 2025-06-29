@@ -93,7 +93,7 @@ check_required_variables() {
     log_block_start
 
     log_info "🔧 Checking for required environment variables..."
-    required_vars=(GITHUB_PARENT GITHUB_SETUP_REPO GITHUB_TOKEN GITHUB_USER_EMAIL GITHUB_USER_NAME)
+    required_vars=(GITHUB_PARENT_DIR GITHUB_REPO_SETUP GITHUB_TOKEN GITHUB_USER_EMAIL GITHUB_USER_NAME)
 
     for var in "${required_vars[@]}"; do
         if [ -z "${!var+x}" ]; then
@@ -123,9 +123,9 @@ focus_here() {
     if [ "${howManyRepos}" -gt 0 ]; then
         log_info "Number of repos: ${howManyRepos}"
 
-        mkdir -p "${GITHUB_PARENT}"
-        cd "${GITHUB_PARENT}" || {
-            log_error "ERROR: ${GITHUB_PARENT} not found"
+        mkdir -p "${GITHUB_PARENT_DIR}"
+        cd "${GITHUB_PARENT_DIR}" || {
+            log_error "ERROR: ${GITHUB_PARENT_DIR} not found"
             exit 1
         }
         log_info "Parent directory for GitHub repos: $(pwd)"
@@ -269,7 +269,7 @@ setup_github() {
 setup_symbolic_linksX() {
     log_block_start
 
-    original_bin_dir="${GITHUB_PARENT}/bin"
+    original_bin_dir="${GITHUB_PARENT_DIR}/bin"
 
     mkdir -p "${SYMLINKS_BIN_DIR}"
 
@@ -461,7 +461,7 @@ link_scripts_in_dir() {
 }
 
 setup_symbolic_links() {
-    local project_dir="${GITHUB_PARENT:-$HOME}/bin"
+    local project_dir="${GITHUB_PARENT_DIR:-$HOME}/bin"
     local symlinks_dir="$HOME/.symlinks"
 
     link_scripts_in_dir "${project_dir}" "$symlinks_dir/bin" 700
@@ -521,8 +521,8 @@ fi
 EOF
 fi
 
-#cp "$GITHUB_PARENT/$GITHUB_SETUP_REPO/.post_bashrc" "$HOME"
-#cp "$GITHUB_PARENT/$GITHUB_SETUP_REPO/.bash_profile" "$HOME"
+#cp "$GITHUB_PARENT_DIR/$GITHUB_REPO_SETUP/.post_bashrc" "$HOME"
+#cp "$GITHUB_PARENT_DIR/$GITHUB_REPO_SETUP/.bash_profile" "$HOME"
 
 log_info "✅ All GitHub repos processed and environment configured"
 log_info "🧩 Config files: ~/.bash_profile, ~/.post_bashrc"

@@ -35,15 +35,15 @@ check_requirements() {
     exit 1
   fi
 
-  if ! variable_exists "GITHUB_PARENT"; then
-    echo "⚠️ Environment variable GITHUB_PARENT is not set"
+  if ! variable_exists "GITHUB_PARENT_DIR"; then
+    echo "⚠️ Environment variable GITHUB_PARENT_DIR is not set"
     exit 1
   fi
 }
 
 copy_dotfiles() {
   # --- COPY DOTFILES ---
-  local dotfiles_dir=$GITHUB_PARENT/dotfiles
+  local dotfiles_dir=$GITHUB_PARENT_DIR/dotfiles
   if [ ! -d "$dotfiles_dir" ]; then
     echo "Directory $dotfiles_dir not found"
   fi
