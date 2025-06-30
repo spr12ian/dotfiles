@@ -27,6 +27,8 @@ cat >.env
 
 ```
 curl -fsSL "https://raw.githubusercontent.com/$GITHUB_USER_NAME/$GITHUB_REPO_SETUP/refs/heads/main/setup_linux.sh?nocache=$(date +%s)" -o setup_linux.sh && bash setup_linux.sh &>setup_linux.log
+
+curl -fsSL "https://raw.githubusercontent.com/$GITHUB_USER_NAME/$GITHUB_REPO_SETUP/refs/heads/main/setup_linux.sh?nocache=$(date +%s)" | bash - &>setup_linux.log
 ```
 
 # Use setup-testuser.sh to setup a test user
