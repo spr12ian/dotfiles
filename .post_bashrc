@@ -20,8 +20,6 @@ set_post_bashrc_environment() {
         return 1
     fi
 
-    NVM_DIR="$HOME/.nvm"
-
     IS_WSL=false
     if grep -qi microsoft /proc/version; then
         IS_WSL=true
