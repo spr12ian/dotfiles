@@ -1,47 +1,49 @@
 [user]
-    name = your name # <-- Replace this
-    email = you@users.noreply.github.com  # <-- Replace this
+name = your name                     # <-- Replace this
+email = you@users.noreply.github.com # <-- Replace this
 
 [core]
-    autocrlf = input
-    filemode = false
-    ignorecase = false
-    editor = code --wait
-    excludesFile = ~/.gitignore_global
+autocrlf = input
+filemode = false
+ignorecase = false
+editor = code --wait
+excludesFile = ~/.gitignore_global
 
 [init]
-    defaultBranch = main
+defaultBranch = main
 
 [pull]
-    rebase = merges
+rebase = merges
 
 [merge]
-    tool = vscode
-    conflictstyle = diff3
+tool = vscode
+conflictstyle = diff3
 
 [diff]
-    tool = vscode
+tool = vscode
 
 [color]
-    ui = auto
+ui = auto
 
 [alias]
-    st = status
-    co = checkout
-    br = branch
-    ci = commit
-    lg = log --oneline --graph --all --decorate
-    last = log -1 HEAD
-    unstage = reset HEAD --
-    amend = commit --amend --no-edit
-    type = cat-file -t
-    dump = cat-file -p
+st = status
+co = checkout
+br = branch
+ci = commit
+edit = config --global --edit
+lg = log --oneline --graph --all --decorate
+last = log -1 HEAD
+list = config --list --show-origin
+unstage = reset HEAD --
+amend = commit --amend --no-edit
+type = cat-file -t
+dump = cat-file -p
 
 [push]
-    default = current
+default = current
 
 [credential]
-    helper = store
+helper = store
 
 [safe]
-    directory = *
+directory = *
