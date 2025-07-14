@@ -87,7 +87,7 @@ echo "🛣 PATH overview"
 echo "$PATH" | tr ':' '\n'
 
 echo
-echo "🎯 GITHUB_PARENT_DIR=${GITHUB_PARENT_DIR:-unset}"
+echo "🎯 GITHUB_PROJECTS_DIR=${GITHUB_PROJECTS_DIR:-unset}"
 echo "🎯 GITHUB_DOTFILES_DIR=${GITHUB_DOTFILES_DIR:-unset}"
 echo "🎯 SYMLINKS_BIN_DIR=${SYMLINKS_BIN_DIR:-unset}"
 

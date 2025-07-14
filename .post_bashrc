@@ -8,77 +8,77 @@ __POST_BASHRC_LOADED=1
 # Environment variables
 # ─────────────────────────────────────────────
 set_post_bashrc_environment() {
-    set -a
+  set -a
 
-    local env_file="$HOME/.env"
+  local env_file="$HOME/.env"
 
-    # shellcheck source=/dev/null
-    if [ -f "$env_file" ]; then
-        source "$env_file"
+  # shellcheck source=/dev/null
+  if [ -f "$env_file" ]; then
+    source "$env_file"
+  else
+    echo "Missing .env file"
+    return 1
+  fi
+
+  IS_WSL=false
+  if grep -qi microsoft /proc/version; then
+    IS_WSL=true
+  fi
+
+  if [ "$IS_WSL" = true ]; then
+    if command -v cmd.exe >/dev/null 2>&1; then
+      WINDOWS_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r')
     else
-        echo "Missing .env file"
-        return 1
+      WINDOWS_USER=""
     fi
+    VSCODE_SETTINGS_DIR="/mnt/c/Users/$WINDOWS_USER/AppData/Roaming/Code/User"
+  else
+    VSCODE_SETTINGS_DIR="$HOME/.config/Code/User"
+  fi
 
-    IS_WSL=false
-    if grep -qi microsoft /proc/version; then
-        IS_WSL=true
-    fi
+  # ignore unused variable
+  # shellcheck disable=SC2034
+  VSCODE_SETTINGS_FILE="$VSCODE_SETTINGS_DIR/settings.json"
 
-    if [ "$IS_WSL" = true ]; then
-        if command -v cmd.exe >/dev/null 2>&1; then
-            WINDOWS_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r')
-        else
-            WINDOWS_USER=""
-        fi
-        VSCODE_SETTINGS_DIR="/mnt/c/Users/$WINDOWS_USER/AppData/Roaming/Code/User"
-    else
-        VSCODE_SETTINGS_DIR="$HOME/.config/Code/User"
-    fi
-
-    # ignore unused variable
+  if declare -p GITHUB_PROJECTS_DIR &>/dev/null; then
     # shellcheck disable=SC2034
-    VSCODE_SETTINGS_FILE="$VSCODE_SETTINGS_DIR/settings.json"
+    VSCODE_WORKSPACE_DIR="$GITHUB_PROJECTS_DIR/my-vs-code/workspaces"
+    # shellcheck disable=SC2034
+    GITHUB_DOTFILES_DIR="$GITHUB_PROJECTS_DIR/dotfiles"
+  else
+    echo "⚠️ GITHUB_PROJECTS_DIR not set"
+  fi
 
-    if declare -p GITHUB_PARENT_DIR &>/dev/null; then
-        # shellcheck disable=SC2034
-        VSCODE_WORKSPACE_DIR="$GITHUB_PARENT_DIR/my-vs-code/workspaces"
-        # shellcheck disable=SC2034
-        GITHUB_DOTFILES_DIR="$GITHUB_PARENT_DIR/dotfiles"
-    else
-        echo "⚠️ GITHUB_PARENT_DIR not set"
-    fi
+  local symlinks_dir="$HOME/.symlinks"
+  SYMLINKS_BIN_DIR="$symlinks_dir/bin"
+  SYMLINKS_SOURCE_DIR="$symlinks_dir/source"
 
-    local symlinks_dir="$HOME/.symlinks"
-    SYMLINKS_BIN_DIR="$symlinks_dir/bin"
-    SYMLINKS_SOURCE_DIR="$symlinks_dir/source"
-
-    set +a
+  set +a
 }
 
 if declare -F set_post_bashrc_environment >/dev/null; then
-    if ! set_post_bashrc_environment; then
-        echo "❌ Environment setup failed"
-        return 1
-    fi
-else
-    echo "⚠️  set_post_bashrc_environment is not defined"
+  if ! set_post_bashrc_environment; then
+    echo "❌ Environment setup failed"
     return 1
+  fi
+else
+  echo "⚠️  set_post_bashrc_environment is not defined"
+  return 1
 fi
 
 source_bash_functions() {
-    if [[ -n "${SYMLINKS_SOURCE_DIR:-}" ]]; then
-        local bf_file="$SYMLINKS_SOURCE_DIR/bash_functions"
+  if [[ -n "${SYMLINKS_SOURCE_DIR:-}" ]]; then
+    local bf_file="$SYMLINKS_SOURCE_DIR/bash_functions"
 
-        if [ -f "$bf_file" ]; then
-            # shellcheck source=/dev/null
-            source "$bf_file"
-        else
-            echo "⚠️ Missing file: $bf_file"
-        fi
+    if [ -f "$bf_file" ]; then
+      # shellcheck source=/dev/null
+      source "$bf_file"
     else
-        echo "⚠️ SYMLINKS_SOURCE_DIR not set – skipping bash_functions"
+      echo "⚠️ Missing file: $bf_file"
     fi
+  else
+    echo "⚠️ SYMLINKS_SOURCE_DIR not set – skipping bash_functions"
+  fi
 }
 source_bash_functions
 
@@ -87,65 +87,65 @@ source_bash_functions
 # ─────────────────────────────────────────────
 
 finish_dotfile_test() {
-    local name="$1"
-    local sources=("${BASH_SOURCE[@]:1}") # Skip this function itself
-    echo -e "finish_dotfile_test started at: $(date)"
-    (
-        IFS=' '
-        echo "This script           : ${sources[0]}"
-    )
-    echo -e "\$name=$name"
-    echo -e "\$TEST_DOTFILE_NAME=$TEST_DOTFILE_NAME"
-    echo -e "finish_dotfile_test finished at: $(date)"
-    if [[ "$name" == "$TEST_DOTFILE_NAME" ]]; then
-        echo -e "🛑 Exiting"
-        exit
-    fi
+  local name="$1"
+  local sources=("${BASH_SOURCE[@]:1}") # Skip this function itself
+  echo -e "finish_dotfile_test started at: $(date)"
+  (
+    IFS=' '
+    echo "This script           : ${sources[0]}"
+  )
+  echo -e "\$name=$name"
+  echo -e "\$TEST_DOTFILE_NAME=$TEST_DOTFILE_NAME"
+  echo -e "finish_dotfile_test finished at: $(date)"
+  if [[ "$name" == "$TEST_DOTFILE_NAME" ]]; then
+    echo -e "🛑 Exiting"
+    exit
+  fi
 }
 
 start_dotfile_test() {
-    echo "start_dotfile_test started at: $(date)"
+  echo "start_dotfile_test started at: $(date)"
 
-    echo -e "\$TEST_DOTFILE_NAME=$TEST_DOTFILE_NAME"
+  echo -e "\$TEST_DOTFILE_NAME=$TEST_DOTFILE_NAME"
 
-    local sources=("${BASH_SOURCE[@]:1}") # Skip this function itself
+  local sources=("${BASH_SOURCE[@]:1}") # Skip this function itself
 
-    echo "Shell type           : $0"
-    echo "Bash version         : $BASH_VERSION"
-    (
-        IFS=' '
-        echo "Call stack           : ${sources[*]}"
-    )
-    echo "Current options (\$-): $-"
+  echo "Shell type           : $0"
+  echo "Bash version         : $BASH_VERSION"
+  (
+    IFS=' '
+    echo "Call stack           : ${sources[*]}"
+  )
+  echo "Current options (\$-): $-"
 
-    echo -n "Is interactive?      : [[ \$- == *i* ]] → "
-    [[ $- == *i* ]] && echo yes || echo no
+  echo -n "Is interactive?      : [[ \$- == *i* ]] → "
+  [[ $- == *i* ]] && echo yes || echo no
 
-    echo -n "Is login shell?      : shopt -q login_shell → "
-    shopt -q login_shell && echo yes || echo no
+  echo -n "Is login shell?      : shopt -q login_shell → "
+  shopt -q login_shell && echo yes || echo no
 
-    echo -n "PS1 set?             : declare -p PS1 &>/dev/null → "
-    declare -p PS1 &>/dev/null && echo yes || echo no
+  echo -n "PS1 set?             : declare -p PS1 &>/dev/null → "
+  declare -p PS1 &>/dev/null && echo yes || echo no
 
-    echo "TERM_PROGRAM         : ${TERM_PROGRAM:-}"
-    echo "Host                 : $(hostname -f 2>/dev/null || hostname)"
-    echo "Shell PID            : $$"
+  echo "TERM_PROGRAM         : ${TERM_PROGRAM:-}"
+  echo "Host                 : $(hostname -f 2>/dev/null || hostname)"
+  echo "Shell PID            : $$"
 
-    # More portable parent process command
-    local parent_pid parent_cmd
-    parent_pid=$(ps -o ppid= -p $$ 2>/dev/null)
-    parent_cmd=$(ps -o comm= -p "$parent_pid" 2>/dev/null || echo unknown)
-    echo "Parent process       : ${parent_cmd}"
+  # More portable parent process command
+  local parent_pid parent_cmd
+  parent_pid=$(ps -o ppid= -p $$ 2>/dev/null)
+  parent_cmd=$(ps -o comm= -p "$parent_pid" 2>/dev/null || echo unknown)
+  echo "Parent process       : ${parent_cmd}"
 
-    echo "TTY                  : $(tty 2>/dev/null || echo not-a-tty)"
+  echo "TTY                  : $(tty 2>/dev/null || echo not-a-tty)"
 
-    echo -e "\n--- Environment Variables ---"
-    env | sort
-    echo -e "\n--- Aliases ---"
-    alias
-    echo -e "\n--- Functions ---"
-    compgen -A function
-    echo -e "\n--- start_dotfile_test finished at: $(date)\n"
+  echo -e "\n--- Environment Variables ---"
+  env | sort
+  echo -e "\n--- Aliases ---"
+  alias
+  echo -e "\n--- Functions ---"
+  compgen -A function
+  echo -e "\n--- start_dotfile_test finished at: $(date)\n"
 }
 
 # ─────────────────────────────────────────────
@@ -169,18 +169,18 @@ add_path_if_exists before "$SYMLINKS_BIN_DIR"
 
 # go used for hugo
 add_path_if_exists after \
-    "/mnt/c/Program Files/Microsoft VS Code/bin" \
-    "/usr/local/go/bin" \
-    "$HOME/go/bin"
+  "/mnt/c/Program Files/Microsoft VS Code/bin" \
+  "/usr/local/go/bin" \
+  "$HOME/go/bin"
 
 # ─────────────────────────────────────────────
 # Aliases
 # ─────────────────────────────────────────────
 
 if [[ $- == *i* ]]; then
-    # We are in an interactive shell
-    alias test_bash_functions='source "$HOME/.symlinks/source/test_bash_functions" &>/tmp/test_bash_functions.log'
-    alias testlogin='ssh -i ~/.ssh/id_ed25519_testuser testuser@localhost'
+  # We are in an interactive shell
+  alias test_bash_functions='source "$HOME/.symlinks/source/test_bash_functions" &>/tmp/test_bash_functions.log'
+  alias testlogin='ssh -i ~/.ssh/id_ed25519_testuser testuser@localhost'
 fi
 
 declare -p TEST_DOTFILE_NAME &>/dev/null && start_dotfile_test && finish_dotfile_test post_bashrc

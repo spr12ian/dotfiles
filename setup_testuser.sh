@@ -35,15 +35,15 @@ check_requirements() {
     exit 1
   fi
 
-  if ! variable_exists "GITHUB_PARENT_DIR"; then
-    echo "⚠️ Environment variable GITHUB_PARENT_DIR is not set"
+  if ! variable_exists "GITHUB_PROJECTS_DIR"; then
+    echo "⚠️ Environment variable GITHUB_PROJECTS_DIR is not set"
     exit 1
   fi
 }
 
 copy_dotfiles() {
   # --- COPY DOTFILES ---
-  local dotfiles_dir=$GITHUB_PARENT_DIR/dotfiles
+  local dotfiles_dir=$GITHUB_PROJECTS_DIR/dotfiles
   if [ ! -d "$dotfiles_dir" ]; then
     echo "Directory $dotfiles_dir not found"
   fi
@@ -89,7 +89,7 @@ main() {
   add_user
   add_user_to_sudo_group
 
-  $COPY_DOTFILES && copy_dotfiles # test the dotfiles behave as expected
+  $COPY_DOTFILES && copy_dotfiles  # test the dotfiles behave as expected
   $COPY_SSH_FILES && copy_ssh_keys # test GitHub access
 
   enable_quick_ssh_login
@@ -125,14 +125,14 @@ validate_dotfile_behavior() {
     echo -e "=== Contents of ${TEST_USER_HOME}/${dotfile} ==="
     sudo cat "${TEST_USER_HOME}/${dotfile}"
     echo -e "\n=== End of ${TEST_USER_HOME}/${dotfile} ===\n"
-  } > "${log_file}"
+  } >"${log_file}"
 
   if [[ "$file" == "bashrc" ]]; then
     {
       echo -e "=== Contents of ${TEST_USER_HOME}/.post_bashrc ==="
       sudo cat "${TEST_USER_HOME}/.post_bashrc"
       echo -e "\n=== End of ${TEST_USER_HOME}/.post_bashrc ===\n"
-    } >> "${log_file}"
+    } >>"${log_file}"
   fi
 
   echo "Validating ${dotfile} behavior for ${TEST_USER}..."
@@ -140,10 +140,10 @@ validate_dotfile_behavior() {
 
   if [[ "$file" == "bashrc" ]]; then
     ssh "${ssh_opts[@]}" "${TEST_USER}@localhost" \
-    "TEST_DOTFILE_NAME='post_bashrc' bash -i" >> "${log_file}" 2>&1
+      "TEST_DOTFILE_NAME='post_bashrc' bash -i" >>"${log_file}" 2>&1
   else
     ssh "${ssh_opts[@]}" "${TEST_USER}@localhost" \
-    "TEST_DOTFILE_NAME='bash_profile' bash --login -i" >> "${log_file}" 2>&1
+      "TEST_DOTFILE_NAME='bash_profile' bash --login -i" >>"${log_file}" 2>&1
   fi
 
   if grep -q "dotfile_test finished" "${log_file}"; then
@@ -153,7 +153,6 @@ validate_dotfile_behavior() {
     return 1
   fi
 }
-
 
 validate_bash_profile_behavior() {
   validate_dotfile_behavior bash_profile
