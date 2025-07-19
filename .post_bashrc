@@ -49,6 +49,10 @@ set_post_bashrc_environment() {
     echo "⚠️ GITHUB_PROJECTS_DIR not set"
   fi
 
+  export NVM_DIR="$HOME/.nvm"
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
   local symlinks_dir="$HOME/.symlinks"
   SYMLINKS_BIN_DIR="$symlinks_dir/bin"
   SYMLINKS_SOURCE_DIR="$symlinks_dir/source"
